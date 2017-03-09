@@ -305,11 +305,3 @@ bot.onText(/\/deletetournament/, function (msg, match) {
 //   }
 // });
 //
-
-//
-// bot.onText(/\/pic/, function (msg, match) {
-//   let chatId = msg.chat.id;
-//   let user = msg.from.username;
-//   let image = `./gifs/${getRandomInt(1,11)}.gif`;
-//   bot.sendDocument(chatId, image);
-// });
