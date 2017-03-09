@@ -37,7 +37,6 @@ function getRandomInt(min, max) {
 }
 
 bot.onText(/\/start/, function (msg, match) {
-  console.log('start');
   const chatId = msg.chat.id;
   const respNew = `
     *Welcome!*
@@ -79,12 +78,44 @@ bot.onText(/\/register/, function (msg, match) {
   const chatId = msg.chat.id;
   const user = msg.from;
   const tournament = chatsOpen[chatId]
-  if (tournament.state.registering) {
+  if (tournament && tournament.state.registering) {
     if (!tournament.players[user.id]) {
       tournament.players[user.id] = user.username
       bot.sendMessage(chatId, `${user.username} has been registered! Current players registered: ${Object.keys(tournament.players).length}.`)
     } else bot.sendMessage(chatId, `You have already been registered.`)
   } else bot.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
+});
+
+bot.onText(/\/deletetournament/, function (msg, match) {
+  console.log(msg);
+  const chatId = msg.chat.id;
+  const tournament = chatsOpen[chatId]
+  const opts = {
+    reply_markup: JSON.stringify({
+    keyboard: [[`YES`, `NO`]],
+    one_time_keyboard: true,
+    resize_keyboard: true,
+    selective: true
+    })
+  };
+  const hideKeyboard = {reply_markup: JSON.stringify({hide_keyboard: true})}
+
+  if (tournament) {
+    if (tournament.chatAdmin === msg.from.username) {
+      bot.sendMessage(chatId, `Are you sure? @${tournament.chatAdmin}`, opts);
+      bot.onText(/YES/, () => {
+        delete chatsOpen[chatId];
+        bot.sendMessage(chatId, `Current tournament deleted.`, hideKeyboard);
+      })
+      bot.onText(/NO/, () => {
+        bot.sendMessage(chatId, `The tournament has not been deleted.`, hideKeyboard);
+      })
+    } else {
+      bot.sendMessage(chatId, `Only the group admin can send me commands!`);
+    }
+  } else {
+    bot.sendMessage(chatId, `You are not playing any tournament!`);
+  }
 });
 
 // bot.on('message', function (msg) {
@@ -177,7 +208,6 @@ bot.onText(/\/register/, function (msg, match) {
 //   console.log('end of message');
 // });
 //
-// Matches /start command
 
 // bot.onText(/\/help/, function (msg, match) {
 //   let chatId = msg.chat.id;
@@ -275,43 +305,7 @@ bot.onText(/\/register/, function (msg, match) {
 //   }
 // });
 //
-// bot.onText(/\/deletetournament/, function (msg, match) {
-//   let chatId = msg.chat.id;
-//   let opts = {
-//     reply_markup: JSON.stringify({
-//     keyboard: [[`YES`, `NO`]],
-//     one_time_keyboard: true,
-//     resize_keyboard: true,
-//     selective: true
-//     })
-//   };
-//   for (let i = 0; i < chatsOpen.length; i++) {
-//     console.log(chatsOpen[i]);
-//     if (chatId === chatsOpen[i].chatId) {
-//       if (msg.from.username === chatsOpen[i].chatAdmin) {
-//         if (chatsOpen[i].myState.playing || chatsOpen[i].myState.registering) {
-//           bot.sendMessage(chatId, `Are you sure? @${chatsOpen[i].chatAdmin}`, opts);
-//           bot.onText(/YES/, function (msg, match) {
-//             chatsOpen[i].myState.registering = false;
-//             chatsOpen[i].myState.playing = false;
-//             chatsOpen[i].newT = undefined;
-//             chatsOpen[i].players = [];
-//             chatsOpen[i].playingPlayers = [];
-//             chatsOpen[i].theFinalPlayers = [];
-//             bot.sendMessage(chatId, `Current tournament deleted`, {reply_markup: JSON.stringify({hide_keyboard: true})});
-//           })
-//           bot.onText(/NO/, function (msg, match) {
-//             bot.sendMessage(chatId, `The tournament has not been deleted`, {reply_markup: JSON.stringify({hide_keyboard: true})});
-//           })
-//         } else {
-//             bot.sendMessage(chatId, `You are not playing any tournament!`);
-//           }
-//       } else {
-//           bot.sendMessage(chatId, `Only the group admin can send me commands!`);
-//         }
-//     }
-//   }
-// });
+
 //
 // bot.onText(/\/pic/, function (msg, match) {
 //   let chatId = msg.chat.id;
