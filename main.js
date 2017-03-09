@@ -14,7 +14,6 @@ const token = nconf.get('TELEGRAM_TOKEN');
 // Setup polling way
 const bot = new TelegramBot(token, {polling: true});
 
-
 let NewT = function (chatId, chatAdmin) {
   this.chatId = chatId;
   this.chatAdmin = chatAdmin;
@@ -35,7 +34,7 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-bot.onText(/\/quick/, function (msg, match) {
+bot.onText(/\/quick/, (msg, match) => {
   let chatId = msg.chat.id;
     let resp = `
     *Quick match!*
@@ -61,24 +60,37 @@ Player1 - Player2
 });
 
 bot.on('message', function (msg) {
+  console.log('message');
   let chatId = msg.chat.id;
-
-  if (msg.group_chat_created) {
+  async function getChatAdmin() {
+    const data = await bot.getChatAdministrators(chatId)
+    return data
+  }
+  if (msg.chat.type === 'group') {
     let chatId = msg.chat.id;
-    bot.getChatAdministrators(chatId).then(function(data) {
+    getChatAdmin()
+    .then(function(data) {
+      console.log('data');
       let chatAdmin = data[0].user.username;
-      chatsOpen.push(new NewT(chatId,chatAdmin));
-    }).catch(function(err) {
+      let chatExists = false;
+      chatsOpen.forEach(chat => {
+        if (chat.chatId === chatId) chatExists = true;
+      })
+      if (!chatExists) chatsOpen.push(new NewT(chatId,chatAdmin));
+    })
+    .catch(function(err) {
+      console.log(err);
       })
   }
-
   if (msg.new_chat_member) {
-    if (msg.new_chat_member.username === 'DChamp_Bot') {
+    if (msg.new_chat_member.username === 'tournament-bot') {
       let chatId = msg.chat.id;
-      bot.getChatAdministrators(chatId).then(function(data) {
+      getChatAdmin()
+      .then(function(data) {
         let chatAdmin = data[0].user.username;
         chatsOpen.push(new NewT(chatId,chatAdmin));
-      }).catch(function(err) {
+      })
+      .catch(function(err) {
         })
     }
   }
@@ -169,10 +181,12 @@ bot.on('message', function (msg) {
       }
     }
   }
+  console.log('message again');
 });
 
 // Matches /start command
 bot.onText(/\/start/, function (msg, match) {
+  console.log('start');
   let chatId = msg.chat.id;
   let respNew = `
     *Welcome!*
@@ -248,7 +262,6 @@ You can control me by sending these commands:
 bot.onText(/\/register/, function (msg, match) {
   let chatId = msg.chat.id;
   let user = msg.from.username;
-
   for (let i = 0; i < chatsOpen.length; i++) {
     if (chatId === chatsOpen[i].chatId) {
       if (chatsOpen[i].myState.registring) {
@@ -333,30 +346,27 @@ bot.onText(/\/deletetournament/, function (msg, match) {
     reply_markup: JSON.stringify({
     keyboard: [[`YES`, `NO`]],
     one_time_keyboard: true,
-    resize_keyboard: true
+    resize_keyboard: true,
+    selective: true
     })
   };
-
   for (let i = 0; i < chatsOpen.length; i++) {
+    console.log(chatsOpen[i]);
     if (chatId === chatsOpen[i].chatId) {
       if (msg.from.username === chatsOpen[i].chatAdmin) {
-        if (chatsOpen[i].myState.playing) {
-          bot.sendMessage(chatId, `Are you sure?`, opts);
+        if (chatsOpen[i].myState.playing || chatsOpen[i].myState.registring) {
+          bot.sendMessage(chatId, `Are you sure? @${chatsOpen[i].chatAdmin}`, opts);
           bot.onText(/YES/, function (msg, match) {
-            if (msg.from.username === chatsOpen[i].chatAdmin) {
-              chatsOpen[i].myState.registring = false;
-              chatsOpen[i].myState.playing = false;
-              chatsOpen[i].newT = undefined;
-              chatsOpen[i].players = [];
-              chatsOpen[i].playingPlayers = [];
-              chatsOpen[i].theFinalPlayers = [];
-              bot.sendMessage(chatId, `Current tournament deleted`);
-            }
+            chatsOpen[i].myState.registring = false;
+            chatsOpen[i].myState.playing = false;
+            chatsOpen[i].newT = undefined;
+            chatsOpen[i].players = [];
+            chatsOpen[i].playingPlayers = [];
+            chatsOpen[i].theFinalPlayers = [];
+            bot.sendMessage(chatId, `Current tournament deleted`, {reply_markup: JSON.stringify({hide_keyboard: true})});
           })
           bot.onText(/NO/, function (msg, match) {
-            if (msg.from.username === chatsOpen[i].chatAdmin) {
-              bot.sendMessage(chatId, `The tournament has not been deleted`);
-            }
+            bot.sendMessage(chatId, `The tournament has not been deleted`, {reply_markup: JSON.stringify({hide_keyboard: true})});
           })
         } else {
             bot.sendMessage(chatId, `You are not playing any tournament!`);
@@ -371,6 +381,6 @@ bot.onText(/\/deletetournament/, function (msg, match) {
 bot.onText(/\/pic/, function (msg, match) {
   let chatId = msg.chat.id;
   let user = msg.from.username;
-  let image = `./pics/${getRandomInt(1,16)}.jpg`;
-  bot.sendPhoto(chatId, image);
+  let image = `./gifs/${getRandomInt(1,11)}.gif`;
+  bot.sendDocument(chatId, image);
 });
