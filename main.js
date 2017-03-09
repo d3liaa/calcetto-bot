@@ -209,40 +209,38 @@ bot.onText(/\/deletetournament/, function (msg, match) {
 // });
 //
 
-// bot.onText(/\/help/, function (msg, match) {
-//   let chatId = msg.chat.id;
-//   let resp = `
-//     To start a tournament you have to add me to a Telegram group.
-//
-//   Then type /start to start a tournament!
-//   Every player has to register before the tournament starts.
-//   Once the tournament has started, only the group administrator can send me commands, except /next.
-//   Players can type /next to know the next opponent.
-//
-//   You can control me by sending these commands:
-//
-//     /start - start the registration process
-//     /register - register at the tournament
-//     /go - start the tournament
-//     /help - list of commands and help
-//     /deletetournament - delete an existing tournament
-//     /next - show next opponent
-//     /pic - show random pictures
-//     /quick - play a single match
-//
-//     `;
-//
-//   for (let i = 0; i < chatsOpen.length; i++) {
-//     if (chatsOpen[i].chatId === chatId) {
-//       if (msg.from.username === chatsOpen[i].chatAdmin) {
-//           bot.sendMessage(chatId, resp, {parse_mode: 'Markdown'});
-//         } else {
-//             bot.sendMessage(chatId, `Only ${chatsOpen[i].chatAdmin} can send me commands!`);
-//           }
-//     }
-//   }
-// });
-//
+bot.onText(/\/help/, function (msg, match) {
+  const chatId = msg.chat.id;
+  const resp = `
+    To start a tournament you have to add me to a Telegram group.
+
+  Then type /start to start a tournament!
+  Every player has to register before the tournament starts.
+  Once the tournament has started, only the group administrator can send me commands, except /next.
+  Players can type /next to know the next opponent.
+
+  You can control me by sending these commands:
+
+    /start - start the registration process
+    /register - register at the tournament
+    /go - start the tournament
+    /next - show next opponent
+    /deletetournament - delete an existing tournament
+    /help - list of commands and help
+
+    `;
+  bot.getChatAdministrators(chatId)
+  .then((data) => {
+    const chatAdmin = data[0].user.username;
+    if (chatAdmin === msg.from.username){
+      bot.sendMessage(chatId, resp, {parse_mode: 'Markdown'});
+    } else bot.sendMessage(chatId, `Only ${chatAdmin} can send me commands!`);
+  })
+  .catch(err => {
+    console.log(err);
+  })
+});
+
 
 //
 // bot.onText(/\/next/, function (msg, match) {
