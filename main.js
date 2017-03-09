@@ -14,49 +14,77 @@ const token = nconf.get('TELEGRAM_TOKEN');
 // Setup polling way
 const bot = new TelegramBot(token, {polling: true});
 
-let NewT = function (chatId, chatAdmin) {
-  this.chatId = chatId;
-  this.chatAdmin = chatAdmin;
-  this.players = [];
-  this.playingPlayers = [];
-  this.theFinalPlayers = [];
-  this.quickMatch = [];
-  this.myState = {
-    registering: true,
-    playing: false
-  };
-  this.newT;
+class Tournament {
+  constructor (chatId, chatAdmin) {
+    this.chatId = chatId;
+    this.chatAdmin = chatAdmin;
+    this.players = {};
+    this.playingPlayers = [];
+    this.theFinalPlayers = [];
+    this.quickMatch = [];
+    this.state = {
+      registering: true,
+      playing: false
+    };
+    this.tournament;
+  }
 }
 
-let chatsOpen = {};
+const chatsOpen = {};
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-bot.onText(/\/quick/, (msg, match) => {
-  let chatId = msg.chat.id;
-    let resp = `
-    *Quick match!*
+bot.onText(/\/start/, function (msg, match) {
+  console.log('start');
+  const chatId = msg.chat.id;
+  const respNew = `
+    *Welcome!*
 
-  Send me the players names using this format:
+  Before we start the tournament, every player has to register.
 
-  Player1 - Player2
+  Please type /register to register at the tournament.
+  Every player has to send /register.
+
+  When ready, the administrator has to type /go to? start the tournament.
+
+  Players can send /next to know the next opponent.
+  If not playing, you can have fun watching some random /pic
+
+  You can also play a single match 1 VS 1 by sending /quick
 
     `;
-  for (let i = 0; i < chatsOpen.length; i++) {
-    if (chatsOpen[i].chatId === chatId) {
-      if (msg.from.username === chatsOpen[i].chatAdmin) {
-        if (chatsOpen[i].myState.registering === false && chatsOpen[i].myState.playing === false) {
-          bot.sendMessage(chatId, resp, {parse_mode: 'Markdown'});
-        } else {
-            bot.sendMessage(chatId, `Can't play a quick match while playing or registering into a tournament. You have to finish it or delete it.`);
-        }
-      } else {
-          bot.sendMessage(chatId, `Only ${chatsOpen[i].chatAdmin} can send me commands!`);
-        }
-    }
+
+  if (msg.chat.type === 'group') {
+    bot.getChatAdministrators(chatId)
+    .then((data) => {
+      const chatAdmin = data[0].user.username;
+      if (msg.from.username === chatAdmin) {
+        if (chatsOpen[chatId] === undefined) {
+          chatsOpen[chatId] = new Tournament(chatId,chatAdmin);
+          bot.sendMessage(chatId, respNew, {parse_mode: 'Markdown'});
+        } else if (chatsOpen[chatId].myState.playing === true) {
+          bot.sendMessage(chatId, 'You are already playing in a tournament.')
+        } else bot.sendMessage(chatId, 'You already set up a tournament, send /go to start.')
+      } else bot.sendMessage(chatId, `Only ${chatAdmin} can send me commands!`);
+    })
+    .catch(function(err) {
+      console.log(err);
+    })
   }
+});
+
+bot.onText(/\/register/, function (msg, match) {
+  const chatId = msg.chat.id;
+  const user = msg.from;
+  const tournament = chatsOpen[chatId]
+  if (tournament.state.registering) {
+    if (!tournament.players[user.id]) {
+      tournament.players[user.id] = user.username
+      bot.sendMessage(chatId, `${user.username} has been registered! Current players registered: ${Object.keys(tournament.players).length}.`)
+    } else bot.sendMessage(chatId, `You have already been registered.`)
+  } else bot.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
 });
 
 // bot.on('message', function (msg) {
@@ -150,44 +178,6 @@ bot.onText(/\/quick/, (msg, match) => {
 // });
 //
 // Matches /start command
-bot.onText(/\/start/, function (msg, match) {
-  console.log('start');
-  const chatId = msg.chat.id;
-  const respNew = `
-    *Welcome!*
-
-  Before we start the tournament, every player has to register.
-
-  Please type /register to register at the tournament.
-  Every player has to send /register.
-
-  When ready, the administrator has to type /go to? start the tournament.
-
-  Players can send /next to know the next opponent.
-  If not playing, you can have fun watching some random /pic
-
-  You can also play a single match 1 VS 1 by sending /quick
-
-    `;
-
-  if (msg.chat.type === 'group') {
-    bot.getChatAdministrators(chatId)
-    .then((data) => {
-      const chatAdmin = data[0].user.username;
-      if (msg.from.username === chatAdmin) {
-        if (chatsOpen[chatId] === undefined) {
-          chatsOpen[chatId] = new NewT(chatId,chatAdmin);
-          bot.sendMessage(chatId, respNew, {parse_mode: 'Markdown'});
-        } else if (chatsOpen[chatId].playing === true) {
-          bot.sendMessage(chatId, 'You are already playing in a tournament.')
-        } else bot.sendMessage(chatId, 'You already set up a tournament, send /go to start.')
-      } else bot.sendMessage(chatId, `Only ${chatAdmin} can send me commands!`);
-    })
-    .catch(function(err) {
-      console.log(err);
-    })
-  }
-});
 
 // bot.onText(/\/help/, function (msg, match) {
 //   let chatId = msg.chat.id;
@@ -223,26 +213,7 @@ bot.onText(/\/start/, function (msg, match) {
 //   }
 // });
 //
-// bot.onText(/\/register/, function (msg, match) {
-//   let chatId = msg.chat.id;
-//   let user = msg.from.username;
-//   for (let i = 0; i < chatsOpen.length; i++) {
-//     if (chatId === chatsOpen[i].chatId) {
-//       if (chatsOpen[i].myState.registering) {
-//         if (chatsOpen[i].players.indexOf(user) === -1) {
-//           chatsOpen[i].players.push(user);
-//           let resp = `
-//         ${user} has been registered!
-// Current players registered: ${chatsOpen[i].players.length}
-//       `;
-//         bot.sendMessage(chatId, resp);
-//         } else { bot.sendMessage(chatId, `You can't register more than once!`)}
-//       } else {
-//           bot.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
-//        }
-//     }
-//   }
-// });
+
 //
 // bot.onText(/\/next/, function (msg, match) {
 //   let chatId = msg.chat.id;
