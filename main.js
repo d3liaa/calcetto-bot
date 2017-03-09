@@ -22,13 +22,13 @@ let NewT = function (chatId, chatAdmin) {
   this.theFinalPlayers = [];
   this.quickMatch = [];
   this.myState = {
-    registring: false,
+    registering: true,
     playing: false
   };
   this.newT;
 }
 
-let chatsOpen = [];
+let chatsOpen = {};
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -39,15 +39,15 @@ bot.onText(/\/quick/, (msg, match) => {
     let resp = `
     *Quick match!*
 
-Send me the players names using this format:
+  Send me the players names using this format:
 
-Player1 - Player2
+  Player1 - Player2
 
     `;
   for (let i = 0; i < chatsOpen.length; i++) {
     if (chatsOpen[i].chatId === chatId) {
       if (msg.from.username === chatsOpen[i].chatAdmin) {
-        if (chatsOpen[i].myState.registring === false && chatsOpen[i].myState.playing === false) {
+        if (chatsOpen[i].myState.registering === false && chatsOpen[i].myState.playing === false) {
           bot.sendMessage(chatId, resp, {parse_mode: 'Markdown'});
         } else {
             bot.sendMessage(chatId, `Can't play a quick match while playing or registering into a tournament. You have to finish it or delete it.`);
@@ -59,328 +59,292 @@ Player1 - Player2
   }
 });
 
-bot.on('message', function (msg) {
-  console.log('message');
-  let chatId = msg.chat.id;
-  async function getChatAdmin() {
-    const data = await bot.getChatAdministrators(chatId)
-    return data
-  }
-  if (msg.chat.type === 'group') {
-    let chatId = msg.chat.id;
-    getChatAdmin()
-    .then(function(data) {
-      console.log('data');
-      let chatAdmin = data[0].user.username;
-      let chatExists = false;
-      chatsOpen.forEach(chat => {
-        if (chat.chatId === chatId) chatExists = true;
-      })
-      if (!chatExists) chatsOpen.push(new NewT(chatId,chatAdmin));
-    })
-    .catch(function(err) {
-      console.log(err);
-      })
-  }
-  if (msg.new_chat_member) {
-    if (msg.new_chat_member.username === 'tournament-bot') {
-      let chatId = msg.chat.id;
-      getChatAdmin()
-      .then(function(data) {
-        let chatAdmin = data[0].user.username;
-        chatsOpen.push(new NewT(chatId,chatAdmin));
-      })
-      .catch(function(err) {
-        })
-    }
-  }
-
-  for (var i = 0; i < chatsOpen.length; i++) {
-    if (chatsOpen[i].chatId === chatId) {
-      if (msg.from.username === chatsOpen[i].chatAdmin) {
-        if (chatsOpen[i].theFinalPlayers.includes(msg.text)) {
-          setTimeout (function () {
-            bot.sendMessage(chatId, `Tournament ended. Congratulations to ${msg.text}!`);
-          }, 600);
-          let video = './champion/messilegend.mp4';
-          bot.sendVideo(chatId, video);
-          let gif = './champion/winner.gif';
-          bot.sendDocument(chatId, gif, {caption: "Who's the king?"});
-          chatsOpen[i].theFinalPlayers = [];
-        }
-
-        if (chatsOpen[i].playingPlayers.includes(msg.text)) {
-          let winner = msg.text;
-          let gif = `./gifs/${getRandomInt(1,11)}.gif`;
-          bot.sendMessage(chatId, `${msg.text} wins!`);
-          bot.sendDocument(chatId, gif, {caption: "Who's next?"});
-          // winner goes to next round
-          chatsOpen[i].newT.passRound(winner);
-          let nextMatch = chatsOpen[i].newT.nextMatch();
-          if (nextMatch.round === 'final') {
-            chatsOpen[i].theFinalPlayers = [nextMatch.player1, nextMatch.player2];
-            bot.sendMessage(chatId, `FINAL MATCH: ${nextMatch.player1} VS ${nextMatch.player2}`);
-            let opts = {
-              reply_markup: JSON.stringify({
-                keyboard: [chatsOpen[i].theFinalPlayers],
-                one_time_keyboard: true,
-                resize_keyboard: true
-              })
-            };
-            setTimeout (function () {
-              bot.sendMessage(chatId, `Who is the CHAMPION? Choose the winner by clicking the button below.`, opts);
-            }, 600);
-            chatsOpen[i].myState.registring = false;
-            chatsOpen[i].myState.playing = false;
-            chatsOpen[i].newT = undefined;
-            chatsOpen[i].players = [];
-            chatsOpen[i].playingPlayers = [];
-          } else {
-              chatsOpen[i].playingPlayers = [nextMatch.player1, nextMatch.player2];
-              bot.sendMessage(chatId, `Next Match: ${nextMatch.player1} VS ${nextMatch.player2}`);
-              let opts = {
-                reply_markup: JSON.stringify({
-                  keyboard: [chatsOpen[i].playingPlayers],
-                  one_time_keyboard: true,
-                  resize_keyboard: true
-                })
-              };
-              setTimeout (function () {
-                bot.sendMessage(chatId, `Who won the match? Choose the winner by clicking the button below.`, opts);
-              }, 600);
-            }
-        }
-
-        if ((msg.text).includes("-")) {
-          let re = /(.+)-(.+)/;
-          chatsOpen[i].quickMatch = msg.text.split(re);
-          chatsOpen[i].quickMatch.splice(0,1);
-          chatsOpen[i].quickMatch.splice(2,1);
-          bot.sendMessage(chatId, `Match ready!`);
-          let opts = {
-                reply_markup: JSON.stringify({
-                  keyboard: [chatsOpen[i].quickMatch],
-                  one_time_keyboard: true,
-                  resize_keyboard: true
-                })
-              };
-          setTimeout (function () {
-                bot.sendMessage(chatId, `Who won the match? Choose the winner by clicking the button below.`, opts);
-              }, 2000);
-        }
-
-        if (chatsOpen[i].quickMatch.includes(msg.text)) {
-          setTimeout (function () {
-            bot.sendMessage(chatId, `${msg.text} rocks!`);
-          }, 600);
-          let gif = `./gifs/${getRandomInt(1,11)}.gif`;
-          bot.sendDocument(chatId, gif, {caption: "Too easy..."});
-          chatsOpen[i].quickMatch = [];
-        }
-
-      }
-    }
-  }
-  console.log('message again');
-});
-
+// bot.on('message', function (msg) {
+//   for (var i = 0; i < chatsOpen.length; i++) {
+//     if (chatsOpen[i].chatId === chatId) {
+//       if (msg.from.username === chatsOpen[i].chatAdmin) {
+//         if (chatsOpen[i].theFinalPlayers.includes(msg.text)) {
+//           setTimeout (function () {
+//             bot.sendMessage(chatId, `Tournament ended. Congratulations to ${msg.text}!`);
+//           }, 600);
+//           let video = './champion/messilegend.mp4';
+//           bot.sendVideo(chatId, video);
+//           let gif = './champion/winner.gif';
+//           bot.sendDocument(chatId, gif, {caption: "Who's the king?"});
+//           chatsOpen[i].theFinalPlayers = [];
+//         }
+//
+//         if (chatsOpen[i].playingPlayers.includes(msg.text)) {
+//           let winner = msg.text;
+//           let gif = `./gifs/${getRandomInt(1,11)}.gif`;
+//           bot.sendMessage(chatId, `${msg.text} wins!`);
+//           bot.sendDocument(chatId, gif, {caption: "Who's next?"});
+//           // winner goes to next round
+//           chatsOpen[i].newT.passRound(winner);
+//           let nextMatch = chatsOpen[i].newT.nextMatch();
+//           if (nextMatch.round === 'final') {
+//             chatsOpen[i].theFinalPlayers = [nextMatch.player1, nextMatch.player2];
+//             bot.sendMessage(chatId, `FINAL MATCH: ${nextMatch.player1} VS ${nextMatch.player2}`);
+//             let opts = {
+//               reply_markup: JSON.stringify({
+//                 keyboard: [chatsOpen[i].theFinalPlayers],
+//                 one_time_keyboard: true,
+//                 resize_keyboard: true
+//               })
+//             };
+//             setTimeout (function () {
+//               bot.sendMessage(chatId, `Who is the CHAMPION? Choose the winner by clicking the button below.`, opts);
+//             }, 600);
+//             chatsOpen[i].myState.registering = false;
+//             chatsOpen[i].myState.playing = false;
+//             chatsOpen[i].newT = undefined;
+//             chatsOpen[i].players = [];
+//             chatsOpen[i].playingPlayers = [];
+//           } else {
+//               chatsOpen[i].playingPlayers = [nextMatch.player1, nextMatch.player2];
+//               bot.sendMessage(chatId, `Next Match: ${nextMatch.player1} VS ${nextMatch.player2}`);
+//               let opts = {
+//                 reply_markup: JSON.stringify({
+//                   keyboard: [chatsOpen[i].playingPlayers],
+//                   one_time_keyboard: true,
+//                   resize_keyboard: true
+//                 })
+//               };
+//               setTimeout (function () {
+//                 bot.sendMessage(chatId, `Who won the match? Choose the winner by clicking the button below.`, opts);
+//               }, 600);
+//             }
+//         }
+//
+//         if ((msg.text).includes("-")) {
+//           let re = /(.+)-(.+)/;
+//           chatsOpen[i].quickMatch = msg.text.split(re);
+//           chatsOpen[i].quickMatch.splice(0,1);
+//           chatsOpen[i].quickMatch.splice(2,1);
+//           bot.sendMessage(chatId, `Match ready!`);
+//           let opts = {
+//                 reply_markup: JSON.stringify({
+//                   keyboard: [chatsOpen[i].quickMatch],
+//                   one_time_keyboard: true,
+//                   resize_keyboard: true
+//                 })
+//               };
+//           setTimeout (function () {
+//                 bot.sendMessage(chatId, `Who won the match? Choose the winner by clicking the button below.`, opts);
+//               }, 2000);
+//         }
+//
+//         if (chatsOpen[i].quickMatch.includes(msg.text)) {
+//           setTimeout (function () {
+//             bot.sendMessage(chatId, `${msg.text} rocks!`);
+//           }, 600);
+//           let gif = `./gifs/${getRandomInt(1,11)}.gif`;
+//           bot.sendDocument(chatId, gif, {caption: "Too easy..."});
+//           chatsOpen[i].quickMatch = [];
+//         }
+//
+//       }
+//     }
+//   }
+//   console.log('end of message');
+// });
+//
 // Matches /start command
 bot.onText(/\/start/, function (msg, match) {
   console.log('start');
-  let chatId = msg.chat.id;
-  let respNew = `
+  const chatId = msg.chat.id;
+  const respNew = `
     *Welcome!*
 
-Before we start the tournament, every player has to register.
+  Before we start the tournament, every player has to register.
 
-Please type /register to register at the tournament.
-Every player has to send /register.
+  Please type /register to register at the tournament.
+  Every player has to send /register.
 
-When ready, the administrator has to type /go to start the tournament.
+  When ready, the administrator has to type /go to? start the tournament.
 
-Players can send /next to know the next opponent.
-If not playing, you can have fun watching some random /pic
+  Players can send /next to know the next opponent.
+  If not playing, you can have fun watching some random /pic
 
-You can also play a single match 1 VS 1 by sending /quick
-
-    `;
-
-  for (let i = 0; i < chatsOpen.length; i++) {
-    if (chatsOpen[i].chatId === chatId) {
-      if (msg.from.username === chatsOpen[i].chatAdmin) {
-        if (chatsOpen[i].myState.playing === false) {
-          if (chatsOpen[i].myState.registring === false){
-            chatsOpen[i].myState.registring = true;
-            bot.sendMessage(chatId, respNew, {parse_mode: 'Markdown'});
-          } else {
-            bot.sendMessage(chatId, 'You are already registering in a tournament. Send /go to start when all players are registered.');
-          }
-        } else {
-          bot.sendMessage(chatId, `Can't play more than one tournament at once`);
-        }
-      } else {
-        bot.sendMessage(chatId, `Only ${chatsOpen[i].chatAdmin} can send me commands!`);
-      }
-    }
-  }
-});
-
-bot.onText(/\/help/, function (msg, match) {
-  let chatId = msg.chat.id;
-  let resp = `
-    To start a tournament you have to add me to a Telegram group.
-
-Then type /start to start a tournament!
-Every player has to register before the tournament starts.
-Once the tournament has started, only the group administrator can send me commands, except /next.
-Players can type /next to know the next opponent.
-
-You can control me by sending these commands:
-
-  /start - start the registration process
-  /register - register at the tournament
-  /go - start the tournament
-  /help - list of commands and help
-  /deletetournament - delete an existing tournament
-  /next - show next opponent
-  /pic - show random pictures
-  /quick - play a single match
+  You can also play a single match 1 VS 1 by sending /quick
 
     `;
 
-  for (let i = 0; i < chatsOpen.length; i++) {
-    if (chatsOpen[i].chatId === chatId) {
-      if (msg.from.username === chatsOpen[i].chatAdmin) {
-          bot.sendMessage(chatId, resp, {parse_mode: 'Markdown'});
-        } else {
-            bot.sendMessage(chatId, `Only ${chatsOpen[i].chatAdmin} can send me commands!`);
-          }
-    }
-  }
-});
-
-bot.onText(/\/register/, function (msg, match) {
-  let chatId = msg.chat.id;
-  let user = msg.from.username;
-  for (let i = 0; i < chatsOpen.length; i++) {
-    if (chatId === chatsOpen[i].chatId) {
-      if (chatsOpen[i].myState.registring) {
-        if (chatsOpen[i].players.indexOf(user) === -1) {
-          chatsOpen[i].players.push(user);
-          let resp = `
-        ${user} has been registered!
-Current players registered: ${chatsOpen[i].players.length}
-      `;
-        bot.sendMessage(chatId, resp);
-        } else { bot.sendMessage(chatId, `You can't register more than once!`)}
-      } else {
-          bot.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
-       }
-    }
-  }
-});
-
-bot.onText(/\/next/, function (msg, match) {
-  let chatId = msg.chat.id;
-  let user = msg.from.username;
-
-  for (let i = 0; i < chatsOpen.length; i++) {
-    if (chatId === chatsOpen[i].chatId) {
-      if (chatsOpen[i].myState.playing) {
-        if (chatsOpen[i].players.includes(user) || chatsOpen[i].playingPlayers.includes(user) || chatsOpen[i].theFinalPlayers.includes(user)) {
-          let opponent = chatsOpen[i].newT.nextOpponent(user);
-          let resp = `
-            ${user} your opponent is ${opponent}
-          `;
-        bot.sendMessage(chatId, resp);
-        } else {
-          bot.sendMessage(chatId, `You are not playing the current tournament`);
-          }
-      } else {
-          bot.sendMessage(chatId, `Not playing any tournament yet.`);
-        }
-    }
-  }
-});
-
-bot.onText(/\/go/, function (msg, match) {
-  let chatId = msg.chat.id;
-  for (let i = 0; i < chatsOpen.length; i++) {
-    if (chatId === chatsOpen[i].chatId) {
-      if (msg.from.username === chatsOpen[i].chatAdmin) {
-        if (chatsOpen[i].players.length < 4) {
-          bot.sendMessage(chatId, `You need at least 4 players to start a tournament and you are only ${chatsOpen[i].players.length}!`);
-        } else {
-          //set states, create and show the tournament
-          chatsOpen[i].myState.registring = false;
-          chatsOpen[i].myState.playing = true;
-          let number = chatsOpen[i].players.length;
-          chatsOpen[i].newT = tournament.createTournament(chatsOpen[i].players);
-          bot.sendMessage(chatId, `New tournament created with ${number} players! Start!`);
-
-          // shows next match and ask for the winner
-          let nextM = chatsOpen[i].newT.nextMatch();
-          chatsOpen[i].playingPlayers = [nextM.player1, nextM.player2];
-          bot.sendMessage(chatId, `Next Match: ${nextM.player1} VS ${nextM.player2}`);
-          let opts = {
-            reply_markup: JSON.stringify({
-              keyboard: [chatsOpen[i].playingPlayers],
-              one_time_keyboard: true,
-              resize_keyboard: true
-            })
-          };
-          setTimeout (function () {
-            bot.sendMessage(chatId, `Who won the match? Choose the winner by clicking the button below.`, opts);
-          }, 600);
-        }
-      } else {
-          bot.sendMessage(chatId, `Only ${chatsOpen[i].chatAdmin} can send me commands!`);
-        }
-    }
-  }
-});
-
-bot.onText(/\/deletetournament/, function (msg, match) {
-  let chatId = msg.chat.id;
-  let opts = {
-    reply_markup: JSON.stringify({
-    keyboard: [[`YES`, `NO`]],
-    one_time_keyboard: true,
-    resize_keyboard: true,
-    selective: true
+  if (msg.chat.type === 'group') {
+    bot.getChatAdministrators(chatId)
+    .then((data) => {
+      const chatAdmin = data[0].user.username;
+      if (msg.from.username === chatAdmin) {
+        if (chatsOpen[chatId] === undefined) {
+          chatsOpen[chatId] = new NewT(chatId,chatAdmin);
+          bot.sendMessage(chatId, respNew, {parse_mode: 'Markdown'});
+        } else if (chatsOpen[chatId].playing === true) {
+          bot.sendMessage(chatId, 'You are already playing in a tournament.')
+        } else bot.sendMessage(chatId, 'You already set up a tournament, send /go to start.')
+      } else bot.sendMessage(chatId, `Only ${chatAdmin} can send me commands!`);
     })
-  };
-  for (let i = 0; i < chatsOpen.length; i++) {
-    console.log(chatsOpen[i]);
-    if (chatId === chatsOpen[i].chatId) {
-      if (msg.from.username === chatsOpen[i].chatAdmin) {
-        if (chatsOpen[i].myState.playing || chatsOpen[i].myState.registring) {
-          bot.sendMessage(chatId, `Are you sure? @${chatsOpen[i].chatAdmin}`, opts);
-          bot.onText(/YES/, function (msg, match) {
-            chatsOpen[i].myState.registring = false;
-            chatsOpen[i].myState.playing = false;
-            chatsOpen[i].newT = undefined;
-            chatsOpen[i].players = [];
-            chatsOpen[i].playingPlayers = [];
-            chatsOpen[i].theFinalPlayers = [];
-            bot.sendMessage(chatId, `Current tournament deleted`, {reply_markup: JSON.stringify({hide_keyboard: true})});
-          })
-          bot.onText(/NO/, function (msg, match) {
-            bot.sendMessage(chatId, `The tournament has not been deleted`, {reply_markup: JSON.stringify({hide_keyboard: true})});
-          })
-        } else {
-            bot.sendMessage(chatId, `You are not playing any tournament!`);
-          }
-      } else {
-          bot.sendMessage(chatId, `Only the group admin can send me commands!`);
-        }
-    }
+    .catch(function(err) {
+      console.log(err);
+    })
   }
 });
 
-bot.onText(/\/pic/, function (msg, match) {
-  let chatId = msg.chat.id;
-  let user = msg.from.username;
-  let image = `./gifs/${getRandomInt(1,11)}.gif`;
-  bot.sendDocument(chatId, image);
-});
+// bot.onText(/\/help/, function (msg, match) {
+//   let chatId = msg.chat.id;
+//   let resp = `
+//     To start a tournament you have to add me to a Telegram group.
+//
+//   Then type /start to start a tournament!
+//   Every player has to register before the tournament starts.
+//   Once the tournament has started, only the group administrator can send me commands, except /next.
+//   Players can type /next to know the next opponent.
+//
+//   You can control me by sending these commands:
+//
+//     /start - start the registration process
+//     /register - register at the tournament
+//     /go - start the tournament
+//     /help - list of commands and help
+//     /deletetournament - delete an existing tournament
+//     /next - show next opponent
+//     /pic - show random pictures
+//     /quick - play a single match
+//
+//     `;
+//
+//   for (let i = 0; i < chatsOpen.length; i++) {
+//     if (chatsOpen[i].chatId === chatId) {
+//       if (msg.from.username === chatsOpen[i].chatAdmin) {
+//           bot.sendMessage(chatId, resp, {parse_mode: 'Markdown'});
+//         } else {
+//             bot.sendMessage(chatId, `Only ${chatsOpen[i].chatAdmin} can send me commands!`);
+//           }
+//     }
+//   }
+// });
+//
+// bot.onText(/\/register/, function (msg, match) {
+//   let chatId = msg.chat.id;
+//   let user = msg.from.username;
+//   for (let i = 0; i < chatsOpen.length; i++) {
+//     if (chatId === chatsOpen[i].chatId) {
+//       if (chatsOpen[i].myState.registering) {
+//         if (chatsOpen[i].players.indexOf(user) === -1) {
+//           chatsOpen[i].players.push(user);
+//           let resp = `
+//         ${user} has been registered!
+// Current players registered: ${chatsOpen[i].players.length}
+//       `;
+//         bot.sendMessage(chatId, resp);
+//         } else { bot.sendMessage(chatId, `You can't register more than once!`)}
+//       } else {
+//           bot.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
+//        }
+//     }
+//   }
+// });
+//
+// bot.onText(/\/next/, function (msg, match) {
+//   let chatId = msg.chat.id;
+//   let user = msg.from.username;
+//
+//   for (let i = 0; i < chatsOpen.length; i++) {
+//     if (chatId === chatsOpen[i].chatId) {
+//       if (chatsOpen[i].myState.playing) {
+//         if (chatsOpen[i].players.includes(user) || chatsOpen[i].playingPlayers.includes(user) || chatsOpen[i].theFinalPlayers.includes(user)) {
+//           let opponent = chatsOpen[i].newT.nextOpponent(user);
+//           let resp = `
+//             ${user} your opponent is ${opponent}
+//           `;
+//         bot.sendMessage(chatId, resp);
+//         } else {
+//           bot.sendMessage(chatId, `You are not playing the current tournament`);
+//           }
+//       } else {
+//           bot.sendMessage(chatId, `Not playing any tournament yet.`);
+//         }
+//     }
+//   }
+// });
+//
+// bot.onText(/\/go/, function (msg, match) {
+//   let chatId = msg.chat.id;
+//   for (let i = 0; i < chatsOpen.length; i++) {
+//     if (chatId === chatsOpen[i].chatId) {
+//       if (msg.from.username === chatsOpen[i].chatAdmin) {
+//         if (chatsOpen[i].players.length < 4) {
+//           bot.sendMessage(chatId, `You need at least 4 players to start a tournament and you are only ${chatsOpen[i].players.length}!`);
+//         } else {
+//           //set states, create and show the tournament
+//           chatsOpen[i].myState.registering = false;
+//           chatsOpen[i].myState.playing = true;
+//           let number = chatsOpen[i].players.length;
+//           chatsOpen[i].newT = tournament.createTournament(chatsOpen[i].players);
+//           bot.sendMessage(chatId, `New tournament created with ${number} players! Start!`);
+//
+//           // shows next match and ask for the winner
+//           let nextM = chatsOpen[i].newT.nextMatch();
+//           chatsOpen[i].playingPlayers = [nextM.player1, nextM.player2];
+//           bot.sendMessage(chatId, `Next Match: ${nextM.player1} VS ${nextM.player2}`);
+//           let opts = {
+//             reply_markup: JSON.stringify({
+//               keyboard: [chatsOpen[i].playingPlayers],
+//               one_time_keyboard: true,
+//               resize_keyboard: true
+//             })
+//           };
+//           setTimeout (function () {
+//             bot.sendMessage(chatId, `Who won the match? Choose the winner by clicking the button below.`, opts);
+//           }, 600);
+//         }
+//       } else {
+//           bot.sendMessage(chatId, `Only ${chatsOpen[i].chatAdmin} can send me commands!`);
+//         }
+//     }
+//   }
+// });
+//
+// bot.onText(/\/deletetournament/, function (msg, match) {
+//   let chatId = msg.chat.id;
+//   let opts = {
+//     reply_markup: JSON.stringify({
+//     keyboard: [[`YES`, `NO`]],
+//     one_time_keyboard: true,
+//     resize_keyboard: true,
+//     selective: true
+//     })
+//   };
+//   for (let i = 0; i < chatsOpen.length; i++) {
+//     console.log(chatsOpen[i]);
+//     if (chatId === chatsOpen[i].chatId) {
+//       if (msg.from.username === chatsOpen[i].chatAdmin) {
+//         if (chatsOpen[i].myState.playing || chatsOpen[i].myState.registering) {
+//           bot.sendMessage(chatId, `Are you sure? @${chatsOpen[i].chatAdmin}`, opts);
+//           bot.onText(/YES/, function (msg, match) {
+//             chatsOpen[i].myState.registering = false;
+//             chatsOpen[i].myState.playing = false;
+//             chatsOpen[i].newT = undefined;
+//             chatsOpen[i].players = [];
+//             chatsOpen[i].playingPlayers = [];
+//             chatsOpen[i].theFinalPlayers = [];
+//             bot.sendMessage(chatId, `Current tournament deleted`, {reply_markup: JSON.stringify({hide_keyboard: true})});
+//           })
+//           bot.onText(/NO/, function (msg, match) {
+//             bot.sendMessage(chatId, `The tournament has not been deleted`, {reply_markup: JSON.stringify({hide_keyboard: true})});
+//           })
+//         } else {
+//             bot.sendMessage(chatId, `You are not playing any tournament!`);
+//           }
+//       } else {
+//           bot.sendMessage(chatId, `Only the group admin can send me commands!`);
+//         }
+//     }
+//   }
+// });
+//
+// bot.onText(/\/pic/, function (msg, match) {
+//   let chatId = msg.chat.id;
+//   let user = msg.from.username;
+//   let image = `./gifs/${getRandomInt(1,11)}.gif`;
+//   bot.sendDocument(chatId, image);
+// });
