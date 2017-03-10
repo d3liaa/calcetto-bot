@@ -57,6 +57,14 @@ class Tournament {
     this.rounds.push(firstRound);
   };
 
+  addPlayer (username) {
+    this.players[username] = {
+      name: username,
+      played: [],
+      goals: 0
+    }
+  }
+
   findNextOpponent (username) {
     const rounds = this.rounds;
     for (let i = this.nextGame[0]; i < rounds.length; i++) {
@@ -83,6 +91,11 @@ class Tournament {
     game.winner = winner;
     game.loser = loser;
     delete this.playingPlayers[loser];
+    this.players[winner.name].played.push(game)
+    this.players[winner.name].goals+= Math.max.apply(null, result)
+    this.players[loser.name].played.push(game)
+    this.players[loser.name].goals+= Math.min.apply(null, result)
+
     this.nextGame[0] = this.nextGame[1] < rounds[this.nextGame[0]].length
       ? this.nextGame[0]
       : this.nextGame[0]++;
@@ -118,9 +131,43 @@ class Tournament {
   };
 
   getStats (username) {
-    this.players[username]
+    const player = this.players[username];
+    console.log(player);
+    const avgScore = player.goals / player.played.length
+
+    let highest = 0;
+    let lowest = 0;
+    player.played.forEach(game => {
+      const max = Math.max.apply(null, game.result);
+      const min = Math.min.apply(null, game.result);
+      if (game.winner === username ) {
+        if (max > highest) highest = max;
+        if (max < lowest) lowest = max
+      }
+      else if (min > highest) highest = min;
+      else if (min < lowest) lowest = min;
+    });
+
+    const ranking = this.getRanking();
+    let playersRank;
+    for (let i = 0; i < ranking.length; i++) {
+      if (ranking[i].name === username) playersRank = i + 1;
+    }
   }
 
+  getRanking () {
+    const players = this.players;
+    const ranking = [];
+    for (let player in players) {
+      if (players.hasOwnProperty(player)) {
+        ranking.push({
+          name: player,
+          goals : players[player].goals
+        });
+      }
+    };
+    return ranking.sort((a, b) => b.goals - a.goals)
+  };
 };
 
 const findNextPowerOfTwo = num => {
@@ -135,5 +182,6 @@ const shuffle = (a) => {
 };
 
 const formatResult = (res) => res.replace(/\s/g, '').split('-');
+
 
 module.exports = Tournament;

@@ -58,7 +58,7 @@ class TournamentBot {
     const tournament = this.chatsOpen[chatId];
     if (tournament && tournament.registering) {
       if (!tournament.players[username]) {
-        tournament.players[username] = { name: username };
+        tournament.addPlayer(username)
         telegram.sendMessage(chatId, `${username} has been registered! Current players registered: ${Object.keys(tournament.players).length}.`);
       } else telegram.sendMessage(chatId, `You have already been registered.`);
     } else telegram.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
@@ -154,7 +154,7 @@ class TournamentBot {
           } else telegram.sendMessage(chatId, `Your opponent has not been decided yet`)
         } else telegram.sendMessage(chatId, `You have already been knocked out!`);
       } else telegram.sendMessage(chatId, `You're not participating in this tournament`);
-    } else telegram.sendMessage(chatId, `You're playing any tournament yet.`);
+    } else telegram.sendMessage(chatId, `You're not in a tournament yet.`);
   }
 
   game (msg) {
@@ -182,6 +182,18 @@ class TournamentBot {
         });
       } else telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
     } else telegram.sendMessage(chatId, `You're playing any tournament yet.`);
+  }
+
+  stats (msg) {
+    const chatId = msg.chat.id;
+    const username = msg.from.username;
+    const tournament = this.chatsOpen[chatId]
+    if (tournament) {
+      if (tournament.players[username]) {
+        tournament.getStats(username)
+        telegram.sendMessage(chatId, `${username} scored ${tournament.players[username].goals} points`)
+      } else telegram.sendMessage(chatId, `You are not playing in this tournament`)
+    } else telegram.sendMessage(chatId, `There is no tournament running, send /start to begin playing`)
   }
 }
 

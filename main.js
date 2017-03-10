@@ -18,3 +18,5 @@ bot.telegram.onText(/\/help/, (msg) => bot.help(msg));
 bot.telegram.onText(/\/next/, (msg) => bot.next(msg));
 
 bot.telegram.onText(/\/game/, (msg) => bot.game(msg));
+
+bot.telegram.onText(/\/stats/, (msg) => bot.stats(msg));
