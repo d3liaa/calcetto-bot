@@ -62,7 +62,7 @@ class TournamentBot {
         telegram.sendMessage(chatId, `${username} has been registered! Current players registered: ${Object.keys(tournament.players).length}.`);
       } else telegram.sendMessage(chatId, `You have already been registered.`);
     } else telegram.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
-  }
+  };
 
   go (msg) {
     const chatId = msg.chat.id;
@@ -187,14 +187,15 @@ class TournamentBot {
   stats (msg) {
     const chatId = msg.chat.id;
     const username = msg.from.username;
-    const tournament = this.chatsOpen[chatId]
+    const tournament = this.chatsOpen[chatId];
     if (tournament) {
       if (tournament.players[username]) {
-        tournament.getStats(username)
-        telegram.sendMessage(chatId, `${username} scored ${tournament.players[username].goals} points`)
-      } else telegram.sendMessage(chatId, `You are not playing in this tournament`)
-    } else telegram.sendMessage(chatId, `There is no tournament running, send /start to begin playing`)
-  }
+        tournament.getStats(username);
+        telegram.sendMessage(chatId, `${username} scored ${tournament.players[username].goals} points`);
+      } else telegram.sendMessage(chatId, `You are not playing in this tournament`);
+    } else telegram.sendMessage(chatId, `There is no tournament running, send /start to begin playing`);
+  };
+
 }
 
 module.exports = TournamentBot;

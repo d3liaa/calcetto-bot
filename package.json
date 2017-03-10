@@ -4,9 +4,11 @@
   "description": "Telegram bot to create tournaments",
   "main": "main.js",
   "dependencies": {
+    "d3-node": "^0.2.0",
     "nconf": "^0.8.4",
     "node-telegram-bot-api": "^0.24.0",
-    "nodemon": "^1.11.0"
+    "nodemon": "^1.11.0",
+    "svg2png": "^4.1.1"
   },
   "devDependencies": {
     "mocha": "^3.2.0",
