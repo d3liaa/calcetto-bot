@@ -117,7 +117,7 @@ bot.onText(/\/go/, (msg) => {
   //   }
 });
 
-bot.onText(/\/deletetournament/, function (msg, match) {
+bot.onText(/\/deletetournament/, (msg) => {
   const chatId = msg.chat.id;
   const tournament = chatsOpen[chatId]
   const opts = {
@@ -148,7 +148,7 @@ bot.onText(/\/deletetournament/, function (msg, match) {
   }
 });
 
-bot.onText(/\/help/, function (msg, match) {
+bot.onText(/\/help/, (msg) => {
   const chatId = msg.chat.id;
   const resp = `
     To start a tournament you have to add me to a Telegram group.
@@ -271,18 +271,40 @@ bot.onText(/\/help/, function (msg, match) {
 // });
 //
 
-bot.onText(/\/next/, function (msg, match) {
+bot.onText(/\/next/, (msg) => {
   const chatId = msg.chat.id;
   const user = msg.from;
   const tournament = chatsOpen[chatId]
   if (tournament && tournament.playing) {
     if (tournament.players[user.id]) {
       if(tournament.playingPlayers[user.id]) {
-        const opponent = tournament.nextOpponent(user.username)
+        const opponent = tournament.findNextOpponent(user.username)
         if (opponent) {
           bot.sendMessage(chatId, `${user.username} your opponent is ${opponent}`)
         } else bot.sendMessage(chatId, `Your opponent has not been decided yet`)
       } else bot.sendMessage(chatId, `You have already been knocked out!`);
-    } else bot.sendMessage(chatId, `You are not participating in this tournament`);
-  } else bot.sendMessage(chatId, `Not playing any tournament yet.`);
+    } else bot.sendMessage(chatId, `You're not participating in this tournament`);
+  } else bot.sendMessage(chatId, `You're playing any tournament yet.`);
+});
+
+bot.onText(/\/game/, (msg) => {
+  const chatId = msg.chat.id;
+  const user = msg.from;
+  const tournament = chatsOpen[chatId]
+  if (user.username === tournament.chatAdmin) {
+    if (tournament && tournament.playing) {
+      const nextGame = tournament.findNextGame()
+      const player1 = nextGame.player1
+      const player2 = nextGame.player2
+      bot.sendMessage(chatId, `The next game is between ${player1} and ${player2}!
+        Send /result [${player1}:${player2}] to declare the winner
+        `)
+      bot.onText(/\/result (.+)/, (msg , match) => {
+        if (user.username === tournament.chatAdmin) {
+          const resp = match[1];
+          console.log(resp);
+        } else bot.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
+      });
+    } else bot.sendMessage(chatId, `You're playing any tournament yet.`);
+  } else bot.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
 });

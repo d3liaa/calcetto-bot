@@ -12,7 +12,7 @@ class Tournament {
     this.playing = false;
     this.rounds = [];
     this.wildcards = [];
-    this.nextGame = 0;
+    this.nextGame = [0,0];
   };
 
   createTournament () {
@@ -33,26 +33,36 @@ class Tournament {
     shuffle(playersArr);
 
     for (let i = 0; i < playersArr.length; i += 2) {
-      firstRound.push([playersArr[i], playersArr[i+1]]);
+      firstRound.push({player1: playersArr[i], player2: playersArr[i+1]});
     };
 
     firstRound.forEach(pairing => {
-      if (pairing.includes(0)) {
-        this.wildcards.push(pairing[Math.abs(pairing.indexOf(0) - 1)]);
-      };
+      if (pairing.player1 === 0 && pairing.player2 !== 0) {
+        this.wildcards.push(pairing.player2)
+      }
+      else if (pairing.player2 === 0 && pairing.player1 !== 0){
+        this.wildcards.push(pairing.player1)
+      }
     });
 
     this.rounds.push(firstRound);
   };
 
-  nextOpponent (username) {
-    const rounds = flatten(this.rounds)
-
-    for (let i = this.nextGame; i < rounds.length; i++) {
-      if (rounds[i].includes(username) &&  rounds[i].length > 1) {
-        return rounds[i][Math.abs(rounds[i].indexOf(username) - 1)]
+  findNextOpponent (username) {
+    for (let i = this.nextGame[0]; i < this.rounds.length; i++) {
+      for(let j = this.nextGame[1]; j < this.rounds[i].length; j++) {
+        if (rounds[i][j].player1 === username) return rounds[i][j].player2
+        else if (rounds[i][j].player2 === username) return rounds[i][j].player1
       }
     }
+  }
+
+  findNextGame () {
+    return this.rounds[this.nextGame[0]][this.nextGame[1]]
+  }
+
+  gamePlayed (result) {
+
   }
 };
 
