@@ -117,6 +117,10 @@ class Tournament {
     };
   };
 
+  getStats (username) {
+    this.players[username]
+  }
+
 };
 
 const findNextPowerOfTwo = num => {

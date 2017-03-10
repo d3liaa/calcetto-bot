@@ -54,7 +54,7 @@ bot.onText(/\/register/, (msg) => {
   const tournament = chatsOpen[chatId];
   if (tournament && tournament.registering) {
     if (!tournament.players[username]) {
-      tournament.players[username] = username
+      tournament.players[username] = { name: username };
       bot.sendMessage(chatId, `${username} has been registered! Current players registered: ${Object.keys(tournament.players).length}.`);
     } else bot.sendMessage(chatId, `You have already been registered.`);
   } else bot.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
@@ -155,7 +155,7 @@ bot.onText(/\/next/, (msg) => {
       if(tournament.playingPlayers[username]) {
         const opponent = tournament.findNextOpponent(username)
         if (opponent) {
-          bot.sendMessage(chatId, `${username} your opponent is ${opponent}`)
+          bot.sendMessage(chatId, `${username} your opponent is ${opponent.name}`)
         } else bot.sendMessage(chatId, `Your opponent has not been decided yet`)
       } else bot.sendMessage(chatId, `You have already been knocked out!`);
     } else bot.sendMessage(chatId, `You're not participating in this tournament`);
@@ -169,8 +169,8 @@ bot.onText(/\/game/, (msg) => {
   if (tournament && tournament.playing) {
     if (user.username === tournament.chatAdmin) {
       const nextGame = tournament.findNextGame();
-      const player1 = nextGame.player1;
-      const player2 = nextGame.player2;
+      const player1 = nextGame.player1.name;
+      const player2 = nextGame.player2.name;
       const round = tournament.nextGame[1] === 0 ? `It's the ${tournament.round}!` : '';
       bot.sendMessage(chatId, `${round}
         The next game is between ${player1} and ${player2}!
@@ -180,7 +180,7 @@ bot.onText(/\/game/, (msg) => {
           const resp = match[1];
           tournament.gamePlayed(resp);
           if (tournament.round === 'finished') {
-            bot.sendMessage(chatId, `Congratulations! ${nextGame.winner} won the tournament.`);
+            bot.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
             tournament.playing = false;
           }
         } else bot.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
