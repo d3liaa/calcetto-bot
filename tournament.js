@@ -61,8 +61,8 @@ class Tournament {
     const rounds = this.rounds;
     for (let i = this.nextGame[0]; i < rounds.length; i++) {
       for(let j = this.nextGame[1]; j < rounds[i].length; j++) {
-        if (rounds[i][j].player1 === username) return rounds[i][j].player2;
-        else if (rounds[i][j].player2 === username) return rounds[i][j].player1;
+        if (rounds[i][j].player1.name === username) return rounds[i][j].player2;
+        else if (rounds[i][j].player2.name === username) return rounds[i][j].player1;
       };
     };
   };
