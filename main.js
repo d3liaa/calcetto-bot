@@ -67,7 +67,7 @@ bot.onText(/\/go/, (msg) => {
     if (tournament.chatAdmin === msg.from.username) {
       if (!tournament.playing) {
         const playerCount = Object.keys(tournament.players).length;
-        if (playerCount >= 1) {
+        if (playerCount >= 4) {
           tournament.registering = false;
           tournament.playing = true;
           bot.sendMessage(chatId, `New tournament created with ${playerCount} players! Start!`);
