@@ -7,24 +7,34 @@ class Tournament {
     this.chatAdmin = chatAdmin;
     this.players = {};
     this.playingPlayers = {};
-    // this.theFinalPlayers = [];
     this.registering = true;
     this.playing = false;
     this.rounds = [];
     this.wildcards = [];
     this.nextGame = [0,0];
+    this.finals = {};
+    this.round;
   };
 
   createTournament () {
     const numberOfPlayers = Object.keys(this.players).length;
+    const numberOfRounds = Math.log2(numberOfPlayers);
     const startingNumber = findNextPowerOfTwo(numberOfPlayers);
     const playersArr = [];
     const firstRound = [];
 
+    this.finals = {
+      quarterFinals: numberOfRounds - 3,
+      semiFinals: numberOfRounds - 2,
+      final: numberOfRounds - 1
+    };
+
+    this.round = this.chooseRound();
+
     for (let player in this.players) {
       if (this.players.hasOwnProperty(player)) {
         playersArr.push(this.players[player]);
-        this.playingPlayers[player] = this.players[player]
+        this.playingPlayers[player] = this.players[player];
       };
     };
 
@@ -38,36 +48,76 @@ class Tournament {
 
     firstRound.forEach(pairing => {
       if (pairing.player1 === 0 && pairing.player2 !== 0) {
-        this.wildcards.push(pairing.player2)
-      }
-      else if (pairing.player2 === 0 && pairing.player1 !== 0){
-        this.wildcards.push(pairing.player1)
-      }
+        this.wildcards.push(pairing.player2);
+      } else if (pairing.player2 === 0 && pairing.player1 !== 0) {
+        this.wildcards.push(pairing.player1);
+      };
     });
 
     this.rounds.push(firstRound);
   };
 
   findNextOpponent (username) {
-    for (let i = this.nextGame[0]; i < this.rounds.length; i++) {
-      for(let j = this.nextGame[1]; j < this.rounds[i].length; j++) {
-        if (rounds[i][j].player1 === username) return rounds[i][j].player2
-        else if (rounds[i][j].player2 === username) return rounds[i][j].player1
-      }
-    }
-  }
+    const rounds = this.rounds;
+    for (let i = this.nextGame[0]; i < rounds.length; i++) {
+      for(let j = this.nextGame[1]; j < rounds[i].length; j++) {
+        if (rounds[i][j].player1 === username) return rounds[i][j].player2;
+        else if (rounds[i][j].player2 === username) return rounds[i][j].player1;
+      };
+    };
+  };
 
   findNextGame () {
-    return this.rounds[this.nextGame[0]][this.nextGame[1]]
-  }
+    return this.rounds[this.nextGame[0]][this.nextGame[1]];
+  };
 
   gamePlayed (result) {
+    result = formatResult(result);
 
-  }
+    const rounds = this.rounds;
+    const game = rounds[this.nextGame[0]][this.nextGame[1]];
+    const winner = result[0] > result[1] ? game.player1 : game.player2;
+    const loser = result[0] < result[1] ? game.player1 : game.player2;
+
+    game.result = result;
+    game.winner = winner;
+    game.loser = loser;
+    delete this.playingPlayers[loser];
+    this.nextGame[0] = this.nextGame[1] < rounds[this.nextGame[0]].length
+      ? this.nextGame[0]
+      : this.nextGame[0]++;
+    this.nextGame[1] = this.nextGame[1] < rounds[this.nextGame[0]].length
+      ? this.nextGame[1]++
+      : 0;
+
+    for (let i = this.nextGame[0]; i < rounds.length; i++) {
+      for(let j = this.nextGame[1]; j < rounds[i].length; j++) {
+        if (rounds[i][j].player1 === undefined) {
+          return rounds[i][j].player1 = winner;
+        } else if (rounds[i][j].player2 === undefined) {
+          return rounds[i][j].player2 = winner;
+        }
+      };
+    };
+    if (this.round === 'Final') this.round = 'finished';
+    else this.round = this.chooseRound();
+
+  };
+
+  chooseRound () {
+    switch (this.nextGame[0]) {
+      case this.finals.quarterFinals:
+        return 'Quarter-finals';
+      case this.finals.semiFinals:
+        return 'Semi-finals';
+      case this.finals.final:
+        return 'Final';
+      default:
+        return 'Preliminary Round';
+    };
+  };
+
 };
-
-module.exports = Tournament;
-
 
 const findNextPowerOfTwo = num => {
   return Math.pow(2, Math.ceil(Math.log2(num)));
@@ -80,142 +130,6 @@ const shuffle = (a) => {
   };
 };
 
-const flatten = (arr) => {
-  return arr.reduce((a,b) => a.concat(b))
-}
+const formatResult = (res) => res.replace(/\s/g, '').split('-');
 
-
-// const tm = {};
-//
-// var Match = tm.Match = function () {
-//  this.round = undefined;
-//  this.player1 = undefined;
-//  this.player2 = undefined;
-//  this.score = undefined;
-//  this.played = false;
-//  this.childrenLeft = undefined;
-//  this.childrenRight = undefined;
-// }
-//
-// Match.prototype.addPlayers = function (where, players) {
-//   if (where === 'right') {
-//     this.childrenRight = new Match();
-//     this.childrenRight.player1 = players.shift();
-//     this.childrenRight.player2 = players.shift();
-//   }
-//   if (where === 'left') {
-//     this.childrenLeft = new Match();
-//     this.childrenLeft.player1 = players.shift();
-//     this.childrenLeft.player2 = players.shift();
-//   }
-//   else return false;
-// }
-// //
-// tm.createTournament = function (players) {
-//   let final = new Match();
-//   final.round = 'final';
-//   let queue = [final];
-//   let empty = players.length - 2;
-//   let counter = 2;
-//   let match;
-//
-//   while (queue.length > 0 && counter < empty) {
-//     match = queue.shift();
-//     counter += 2;
-//     match.childrenLeft = new Match ();
-//     queue.push(match.childrenLeft);
-//     if (counter < empty) {
-//       match.childrenRight = new Match ();
-//       queue.push(match.childrenRight);
-//       counter += 2;
-//     }
-//     if ((players.length) % 2 === 0 && counter === empty && match.childrenRight === undefined) {
-//       match.addPlayers('right', players);
-//       counter += 2;
-//     }
-//   }
-//
-//   if ((players.length) % 2 === 1){
-//     if (counter > empty) {
-//       queue[queue.length-1].player2 = players.shift()
-//     }
-//     if (match.childrenRight === undefined) {
-//       match.addPlayers('right', players);
-//     }
-//   }
-//
-//   while (queue.length > 0 && players.length > 0) {
-//     let match = queue.shift();
-//     match.addPlayers('left', players);
-//     if (players.length > 0) {
-//       match.addPlayers('right', players);
-//     }
-//   }
-//   return final;
-// }
-//
-// Match.prototype.setWinner = function (num, winner) {
-//   if (num === 1) {
-//     this.player1 = winner;
-//     this.childrenLeft.played = true;
-//     return true;
-//   }
-//   if (num === 2) {
-//     this.player2 = winner;
-//     this.childrenLeft.played = true;
-//     return true;
-//   }
-//   else return false;
-// }
-//
-// Match.prototype.passRound = function (winner) {
-//   if (this.childrenLeft === undefined) return false;
-//   if (this.childrenLeft.player1 === winner) {
-//     this.setWinner(1, winner);
-//   } else if (this.childrenLeft.player2 === winner ) {
-//     this.setWinner(1, winner);
-//   }
-//   if (this.childrenRight !== undefined) {
-//     if (this.childrenRight.player1 === winner) {
-//       this.setWinner(2, winner);
-//     } else if (this.childrenRight.player2 === winner) {
-//       this.setWinner(2, winner);
-//     }
-//   }
-//
-//   let found = this.childrenLeft.passRound(winner);
-//   if (!found && this.childrenRight)
-//     found = this.childrenRight.passRound(winner);
-//
-//   return found;
-// }
-//
-// Match.prototype.nextMatch = function () {
-//     let next, nextDepth = -1;
-//
-//     (function recurse (match, depth = 0) {
-//         if (match.player1 && match.player2 && depth > nextDepth) {
-//             next = match;
-//             nextDepth = depth;
-//         }
-//         if (!match.player1 && match.childrenLeft)
-//             recurse(match.childrenLeft, depth + 1);
-//         if (!match.player2 && match.childrenRight)
-//             recurse(match.childrenRight, depth + 1);
-//     })(this);
-//     return next;
-// }
-//
-// Match.prototype.nextOpponent = function (player) {
-//     if (this.player1 === player) return this.player2;
-//     if (this.player2 === player) return this.player1;
-//     var match;
-//     if (!this.player2 && !this.player1 && this.childrenRight)
-//         match = this.childrenRight.nextOpponent(player);
-//     // maybe previous return value was undefined, then try the other side:
-//     if (!match && !this.player1 && !this.player2 && this.childrenLeft)
-//         match = this.childrenLeft.nextOpponent(player);
-//     return match;
-// }
-//
-// module.exports = tm;
+module.exports = Tournament;
