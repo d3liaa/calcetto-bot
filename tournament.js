@@ -78,7 +78,8 @@ class Tournament {
   };
 
   findNextGame () {
-    while (this.rounds[this.nextGame[0]][this.nextGame[1]].includes(0)) {
+    while (this.rounds[this.nextGame[0]][this.nextGame[1]].player1 === 0
+      && this.rounds[this.nextGame[0]][this.nextGame[1]].player2 === 0) {
       if (this.nextGame[1] < this.nextGame[0].length) {
         this.nextGame[1] = this.nextGame[1] + 1;
       } else this.nextGame = [this.nextGame[0] + 1, 0];
