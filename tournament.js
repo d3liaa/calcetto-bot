@@ -98,8 +98,8 @@ class Tournament {
 
     this.players[game.winner.name].played.push(game);
     this.players[game.loser.name].played.push(game);
-    this.players[game.winner.name].goals += Math.max.apply(null, result);
-    this.players[game.loser.name].goals += Math.min.apply(null, result);
+    this.players[game.winner.name].goals += Math.max.apply(null, game.result);
+    this.players[game.loser.name].goals += Math.min.apply(null, game.result);
 
     this.placeInNextGame(game.winner);
 
