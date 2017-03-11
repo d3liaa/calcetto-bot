@@ -1,0 +1,27 @@
+{
+  "name": "Winner",
+  "winners": [
+    {
+      "name": "Finalist",
+      "winners": [
+        {
+          "name": "Semi-finalist"
+        },
+        {
+          "name": "Semi-finalist"
+        }
+      ]
+    },
+    {
+      "name": "Finalist",
+      "winners": [
+        {
+          "name": "Semi-finalist"
+        },
+        {
+          "name": "Semi-finalist"
+        }
+      ]
+    }
+  ]
+}

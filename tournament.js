@@ -1,5 +1,7 @@
 'use strict';
 
+const renderJSON = require('./d3/renderJSON');
+
 class Tournament {
 
   constructor (chatId, chatAdmin) {
@@ -10,16 +12,15 @@ class Tournament {
     this.registering = true;
     this.playing = false;
     this.rounds = [];
-    this.wildcards = [];
-    this.nextGame = [0,0];
+    this.nextGame = [0, 0];
     this.finals = {};
     this.round;
   };
 
   createTournament () {
     const numberOfPlayers = Object.keys(this.players).length;
-    const numberOfRounds = Math.log2(numberOfPlayers);
     const startingNumber = findNextPowerOfTwo(numberOfPlayers);
+    const numberOfRounds = Math.log2(startingNumber);
     const playersArr = [];
     const firstRound = [];
 
@@ -46,15 +47,16 @@ class Tournament {
       firstRound.push({player1: playersArr[i], player2: playersArr[i+1]});
     };
 
-    firstRound.forEach(pairing => {
-      if (pairing.player1 === 0 && pairing.player2 !== 0) {
-        this.wildcards.push(pairing.player2);
-      } else if (pairing.player2 === 0 && pairing.player1 !== 0) {
-        this.wildcards.push(pairing.player1);
-      };
-    });
-
     this.rounds.push(firstRound);
+
+    let playersCount = startingNumber / 2;
+    for (let i = 1; i < numberOfRounds; i++) {
+      const round = [];
+      for (let j = 0; j < playersCount; i+=2) round.push([null, null]);
+      this.rounds.push(round);
+      playersCount = playersCount / 2;
+    };
+
   };
 
   addPlayer (username) {
@@ -62,8 +64,8 @@ class Tournament {
       name: username,
       played: [],
       goals: 0
-    }
-  }
+    };
+  };
 
   findNextOpponent (username) {
     const rounds = this.rounds;
@@ -76,10 +78,16 @@ class Tournament {
   };
 
   findNextGame () {
+    while (this.rounds[this.nextGame[0]][this.nextGame[1]].includes(0)) {
+      if (this.nextGame[1] < this.nextGame[0].length) {
+        this.nextGame[1] = this.nextGame[1] + 1;
+      } else this.nextGame = [this.nextGame[0] + 1, 0];
+    };
     return this.rounds[this.nextGame[0]][this.nextGame[1]];
   };
 
   gamePlayed (result) {
+<<<<<<< HEAD
     result = formatResult(result);
     const rounds = this.rounds;
     const game = rounds[this.nextGame[0]][this.nextGame[1]];
@@ -101,19 +109,37 @@ class Tournament {
     this.nextGame[1] = this.nextGame[1] < rounds[this.nextGame[0]].length
       ? this.nextGame[1]++
       : 0;
+=======
+    const game = this.rounds[this.nextGame[0]][this.nextGame[1]];
 
-    for (let i = this.nextGame[0]; i < rounds.length; i++) {
-      for(let j = this.nextGame[1]; j < rounds[i].length; j++) {
-        if (rounds[i][j].player1 === undefined) {
-          return rounds[i][j].player1 = winner;
-        } else if (rounds[i][j].player2 === undefined) {
-          return rounds[i][j].player2 = winner;
-        }
+    game.result = formatResult(result);
+    game.winner = game.result[0] > game.result[1] ? game.player1 : game.player2;
+    game.loser = game.result[0] < game.result[1] ? game.player1 : game.player2;
+>>>>>>> b7a6a9b629ad4ac092d790e8658e8d8bf021ac15
+
+    delete this.playingPlayers[game.loser];
+
+    this.players[game.winner.name].played.push(game);
+    this.players[game.loser.name].played.push(game);
+    this.players[game.winner.name].goals += Math.max.apply(null, result);
+    this.players[game.loser.name].goals += Math.min.apply(null, result);
+
+    this.placeInNextGame(game.winner);
+
+    if (this.nextGame[1] < this.nextGame[0].length) {
+      this.nextGame[1] = this.nextGame[1] + 1;
+    } else this.nextGame = [this.nextGame[0] + 1, 0];
+
+    for (let i = this.nextGame[0]; i < this.rounds.length; i++) {
+      for (let j = this.nextGame[1]; j < this.rounds[i].length; j++) {
+        const game = this.rounds[i][j];
+        if (game.player1 === 0) this.placeInNextGame(game.player2);
+        else if (game.player2 === 0) this.placeInNextGame(game.player1);
+        else this.nextGame = [i, j];
       };
     };
-    if (this.round === 'Final') this.round = 'finished';
-    else this.round = this.chooseRound();
 
+    this.round = this.round === 'Final' ? 'finished' : this.chooseRound();
   };
 
   chooseRound () {
@@ -131,7 +157,7 @@ class Tournament {
 
   getStats (username) {
     const player = this.players[username];
-    const avgScore = player.goals / player.played.length
+    const avgScore = player.goals / player.played.length;
 
     let highest = 0;
     let lowest = 0;
@@ -140,7 +166,7 @@ class Tournament {
       const min = Math.min.apply(null, game.result);
       if (game.winner === username ) {
         if (max > highest) highest = max;
-        if (max < lowest) lowest = max
+        if (max < lowest) lowest = max;
       }
       else if (min > highest) highest = min;
       else if (min < lowest) lowest = min;
@@ -150,8 +176,8 @@ class Tournament {
     let playersRank;
     for (let i = 0; i < ranking.length; i++) {
       if (ranking[i].name === username) playersRank = i + 1;
-    }
-  }
+    };
+  };
 
   getRanking () {
     const players = this.players;
@@ -166,6 +192,26 @@ class Tournament {
     };
     return ranking.sort((a, b) => b.goals - a.goals)
   };
+
+  getWildcards () {
+    const wildcards = [];
+    const currRound = this.rounds[this.nextGame[0]];
+    currRound.forEach(game => {
+      if (game.player1 === 0 && game.player2) wildcards.push(game.player2);
+      else if (game.player2 === 0 && game.player1) wildcards.push(game.player1);
+    });
+    return wildcards;
+  };
+
+  placeInNextGame (player) {
+    for (let i = this.nextGame[0]; i < this.rounds.length; i++) {
+      for(let j = this.nextGame[1]; j < this.rounds[i].length; j++) {
+        if (this.rounds[i][j].player1 === null) this.rounds[i][j].player1 = player;
+        else if (this.rounds[i][j].player2 === null) this.rounds[i][j].player2 = player;
+      };
+    };
+  };
+
 };
 
 const findNextPowerOfTwo = num => {
@@ -180,6 +226,5 @@ const shuffle = (a) => {
 };
 
 const formatResult = (res) => res.replace(/\s/g, '').split('-').map(el => +el);
-
 
 module.exports = Tournament;
