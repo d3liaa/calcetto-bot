@@ -65,8 +65,6 @@ class TournamentBot {
   };
 
   go (msg) {
-
-
     const chatId = msg.chat.id;
     const tournament = this.chatsOpen[chatId];
     if (tournament) {
@@ -80,7 +78,8 @@ class TournamentBot {
             this.telegram.sendMessage(chatId, `
               New tournament created with ${playerCount} players!
               Send /game when you want to start playing.`);
-            const wildcards = tournament.getWildcards();
+            tournament.updateWildcards();
+            const wildcards = tournament.wildcards;
             if (wildcards.length === 1) this.telegram.sendMessage(chatId, `
               ${wildcards[0].name} is lucky and gets a free pass for this round.`);
             else if (wildcards.length > 1) {

@@ -96,21 +96,69 @@ describe('Tournament Methods', function ()  {
     const chatAdmins = mocks.map(chat => chat.users[0]);
 
     it('should start a tournament with 4 players or more', function () {
-      let tournament = 1;
-      chatAdmins.forEach((admin, i) => {
-        const chatId = mocks[i].chatId
+      let tournament;
+      chatAdmins.forEach((admin) => {
+        const chatId = admin.chat.id;
         tournament = bot.chatsOpen[chatId];
+
         bot.go(admin)
+
+        const playingPlayers = Object.keys(tournament.playingPlayers).length;
+        const players = Object.keys(tournament.players).length;
+
         tournament.registering.should.be.false;
         tournament.playing.should.be.true;
-        Object.keys(tournament.playingPlayers).length.should.eql(Object.keys(tournament.players).length);
+
+        playingPlayers.should.eql(players);
+      });
+    });
+
+    it('should create the current tournament structure', function () {
+      chatAdmins.forEach(admin => {
+        const chatId = admin.chat.id;
+        const tournament = bot.chatsOpen[chatId];
+        const rounds = tournament.rounds;
+        const numOfRounds = rounds.length;
+        const playerCount = Object.keys(tournament.players).length;
+
+        rounds.forEach((round, i) => {
+          const actualGamesInRound = round.length;
+          const expectedGamesInRound = Math.pow(2, numOfRounds -  1 - i);
+
+          expectedGamesInRound.should.eql(actualGamesInRound);
+        });
+      });
+    });
+
+    it('should correctly assign wildcards in the first round', function () {
+      chatAdmins.forEach(admin => {
+        const chatId = admin.chat.id;
+        const tournament = bot.chatsOpen[chatId];
+        const firstRound = tournament.rounds[0];
+        const actualWildcards = tournament.wildcards;
+        const actualWildcardsCount = actualWildcards.length;
+
+        const expectedWildcards = firstRound.filter(game => {
+          return game.player1 === 0 && game.player2 !== 0 ||
+          game.player2 === 0 && game.player1 !== 0
+        });
+
+        const expectedWildcardsCount = expectedWildcards.length;
+
+        expectedWildcards.forEach(expected => {
+          const expected_name = expected.player1.name || expected.player2.name
+          const isActualWildcard = actualWildcards.some(actual => actual.name === expected_name);
+
+          isActualWildcard.should.be.true;
+        })
+
+        actualWildcardsCount.should.be.eql(expectedWildcardsCount);
       });
     });
   });
 
   describe('result ()', function () {
     const match = [ '/result 1-2', '1-2', 'index: 0', 'input: /result 1-2' ];
-
 
     it('should update the current game with the scores and winner', function () {
       const chatAdmins = mocks.map(chat => chat.users[0]);

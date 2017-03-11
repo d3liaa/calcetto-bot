@@ -52,7 +52,7 @@ class Tournament {
     let playersCount = startingNumber / 2;
     for (let i = 1; i < numberOfRounds; i++) {
       const round = [];
-      for (let j = 0; j < playersCount; j+=2) round.push([null, null]);
+      for (let j = 0; j < playersCount; j+=2) round.push({player1: null, player2: null});
       this.rounds.push(round);
       playersCount = playersCount / 2;
     };
@@ -170,14 +170,15 @@ class Tournament {
     return ranking.sort((a, b) => b.goals - a.goals)
   };
 
-  getWildcards () {
+  updateWildcards () {
     const wildcards = [];
     const currRound = this.rounds[this.nextGame[0]];
     currRound.forEach(game => {
       if (game.player1 === 0 && game.player2) wildcards.push(game.player2);
       else if (game.player2 === 0 && game.player1) wildcards.push(game.player1);
     });
-    return wildcards;
+
+     this.wildcards = wildcards;
   };
 
   placeInNextGame (player) {
