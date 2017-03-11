@@ -59,9 +59,9 @@ class TournamentBot {
     if (tournament && tournament.registering) {
       if (!tournament.players[username]) {
         tournament.addPlayer(username)
-        telegram.sendMessage(chatId, `${username} has been registered! Current players registered: ${Object.keys(tournament.players).length}.`);
-      } else telegram.sendMessage(chatId, `You have already been registered.`);
-    } else telegram.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
+        this.telegram.sendMessage(chatId, `${username} has been registered! Current players registered: ${Object.keys(tournament.players).length}.`);
+      } else this.telegram.sendMessage(chatId, `You have already been registered.`);
+    } else this.telegram.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
   };
 
   go (msg) {
@@ -74,10 +74,8 @@ class TournamentBot {
           if (playerCount >= 1) {
             tournament.registering = false;
             tournament.playing = true;
-            telegram.sendMessage(chatId, `New tournament created with ${playerCount} players! Start!`);
-
             tournament.createTournament();
-
+            telegram.sendMessage(chatId, `New tournament created with ${playerCount} players! Start!`);
           } else {
             telegram.sendMessage(chatId, `You need ${4 - playerCount} more players to start a tournament!`);
           }
@@ -170,18 +168,24 @@ class TournamentBot {
         telegram.sendMessage(chatId, `${round}
           The next game is between ${player1} and ${player2}!
           Send /result ${player1}-${player2} to declare the winner.`);
-        telegram.onText(/\/result (.+)/, (msg , match) => {
-          if (user.username === tournament.chatAdmin) {
-            const resp = match[1];
-            tournament.gamePlayed(resp);
-            if (tournament.round === 'finished') {
-              telegram.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
-              tournament.playing = false;
-            }
-          } else telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
-        });
       } else telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
     } else telegram.sendMessage(chatId, `You're playing any tournament yet.`);
+  }
+
+  result(msg, match) {
+    const chatId = msg.chat.id;
+    const user = msg.from;
+    const tournament = this.chatsOpen[chatId]
+    const nextGame = tournament.findNextGame();
+    if (user.username === tournament.chatAdmin) {
+      const resp = match[1];
+      console.log(resp);
+      tournament.gamePlayed(resp);
+      if (tournament.round === 'finished') {
+        telegram.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
+        tournament.playing = false;
+      }
+    } else telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
   }
 
   stats (msg) {
