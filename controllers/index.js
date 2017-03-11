@@ -74,10 +74,14 @@ class TournamentBot {
           if (playerCount >= 1) {
             tournament.registering = false;
             tournament.playing = true;
-            telegram.sendMessage(chatId, `New tournament created with ${playerCount} players! Start!`);
-
+            telegram.sendMessage(chatId, `New tournament created with ${playerCount} players! Send /game when you want to start playing.`);
             tournament.createTournament();
-
+            if (tournament.wildcards.length === 1) {
+              telegram.sendMessage(chatId, `${tournament.wildcards[0].name} is lucky and gets a free pass for the first Round.`);
+            } else if (tournament.wildcards.length > 1) {
+              telegram.sendMessage(chatId, `The following players will get a free pass in the first round:`);
+              tournament.wildcards.map((wildcard) => telegram.sendMessage(chatId, `${wildcard.name}`));
+            }
           } else {
             telegram.sendMessage(chatId, `You need ${4 - playerCount} more players to start a tournament!`);
           }
