@@ -59,22 +59,22 @@ describe('Tournament Methods', function ()  {
       }]
     });
 
-  it(`should add 1 tournament to chatsOpen`, function (done) {
-    getChatAdministrators.returns(new Promise((resolve, reject) => resolve(res[0])));
-    bot.start(chatAdmins[0]).then(() => {
-      bot.chatsOpen.should.have.property(mocks[0].chatId);
-      done();
+    it(`should add 1 tournament to chatsOpen`, function (done) {
+      getChatAdministrators.returns(new Promise((resolve, reject) => resolve(res[0])));
+      bot.start(chatAdmins[0]).then(() => {
+        bot.chatsOpen.should.have.property(mocks[0].chatId);
+        done();
+      });
+    });
+
+    it(`should add multiple tournaments to chatsOpen `, function (done) {
+      getChatAdministrators.returns(new Promise((resolve, reject) => resolve(res[1])));
+      bot.start(chatAdmins[1]).then(() => {
+        bot.chatsOpen.should.have.property(mocks[1].chatId);
+        done();
+      });
     });
   });
-
-  it(`should add multiple tournaments to chatsOpen `, function (done) {
-    getChatAdministrators.returns(new Promise((resolve, reject) => resolve(res[1])));
-    bot.start(chatAdmins[1]).then(() => {
-      bot.chatsOpen.should.have.property(mocks[1].chatId);
-      done();
-    });
-  })
-});
 
   describe('register()', function () {
     it('should add a player to the tournament', function () {
@@ -108,7 +108,7 @@ describe('Tournament Methods', function ()  {
     });
   });
 
-  describe('result', function () {
+  describe('result ()', function () {
     const match = [ '/result 1-2', '1-2', 'index: 0', 'input: /result 1-2' ];
 
 

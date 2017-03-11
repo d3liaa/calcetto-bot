@@ -179,7 +179,6 @@ class TournamentBot {
     const nextGame = tournament.findNextGame();
     if (user.username === tournament.chatAdmin) {
       const resp = match[1];
-      console.log(resp);
       tournament.gamePlayed(resp);
       if (tournament.round === 'finished') {
         telegram.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
