@@ -87,35 +87,11 @@ class Tournament {
   };
 
   gamePlayed (result) {
-<<<<<<< HEAD
-    result = formatResult(result);
-    const rounds = this.rounds;
-    const game = rounds[this.nextGame[0]][this.nextGame[1]];
-    const winner = result[0] > result[1] ? game.player1 : game.player2;
-    const loser = result[0] < result[1] ? game.player1 : game.player2;
-
-    game.result = result;
-    game.winner = winner;
-    game.loser = loser;
-    delete this.playingPlayers[loser];
-    this.players[winner.name].played.push(game)
-    this.players[winner.name].goals+= Math.max.apply(null, result)
-    this.players[loser.name].played.push(game)
-    this.players[loser.name].goals+= Math.min.apply(null, result)
-
-    this.nextGame[0] = this.nextGame[1] < rounds[this.nextGame[0]].length
-      ? this.nextGame[0]
-      : this.nextGame[0]++;
-    this.nextGame[1] = this.nextGame[1] < rounds[this.nextGame[0]].length
-      ? this.nextGame[1]++
-      : 0;
-=======
     const game = this.rounds[this.nextGame[0]][this.nextGame[1]];
 
     game.result = formatResult(result);
     game.winner = game.result[0] > game.result[1] ? game.player1 : game.player2;
     game.loser = game.result[0] < game.result[1] ? game.player1 : game.player2;
->>>>>>> b7a6a9b629ad4ac092d790e8658e8d8bf021ac15
 
     delete this.playingPlayers[game.loser];
 
