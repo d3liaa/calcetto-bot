@@ -57,18 +57,15 @@ class TournamentBot {
     if (tournament && tournament.registering) {
       if (!tournament.players[username]) {
         tournament.addPlayer(username)
-<<<<<<< HEAD
         this.telegram.sendMessage(chatId, `${username} has been registered! Current players registered: ${Object.keys(tournament.players).length}.`);
       } else this.telegram.sendMessage(chatId, `You have already been registered.`);
     } else this.telegram.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
-=======
         telegram.sendMessage(chatId, `
           ${username} has been registered!
           Current players registered: ${Object.keys(tournament.players).length}.`);
       } else telegram.sendMessage(chatId, `You have already been registered.`);
     } else telegram.sendMessage(chatId, `
       Registrations are closed. /start a tournament if you haven't yet.`);
->>>>>>> b7a6a9b629ad4ac092d790e8658e8d8bf021ac15
   };
 
   go (msg) {
@@ -110,7 +107,7 @@ class TournamentBot {
 
   deleteTournament (msg) {
     const chatId = msg.chat.id;
-    const tournament = this.chatsOpen[chatId]
+    const tournament = this.chatsOpen[chatId]i
     const opts = {
       reply_markup: JSON.stringify({
         keyboard: [[`YES`, `NO`]],
