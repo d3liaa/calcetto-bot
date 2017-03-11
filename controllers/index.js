@@ -78,13 +78,11 @@ class TournamentBot {
           if (playerCount >= 1) {
             tournament.registering = false;
             tournament.playing = true;
-<<<<<<< HEAD
             tournament.createTournament();
             telegram.sendMessage(chatId, `New tournament created with ${playerCount} players! Start!`);
           } else {
             telegram.sendMessage(chatId, `You need ${4 - playerCount} more players to start a tournament!`);
           }
-=======
             telegram.sendMessage(chatId, `
               New tournament created with ${playerCount} players!
               Send /game when you want to start playing.`);
@@ -99,7 +97,6 @@ class TournamentBot {
             }
           } else telegram.sendMessage(chatId, `
               You need ${4 - playerCount} more players to start a tournament!`);
->>>>>>> b7a6a9b629ad4ac092d790e8658e8d8bf021ac15
         } else telegram.sendMessage(chatId, `Your Tournament is already running!`);
       } else telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
     } else telegram.sendMessage(chatId, `You haven't started a tournament yet. Send /start.`);
