@@ -46,11 +46,9 @@ class TournamentBot {
           } else this.telegram.sendMessage(chatId, 'You already set up a tournament, send /go to start.')
         } else this.telegram.sendMessage(chatId, `Only ${chatAdmin} can send me commands!`);
       })
-      .catch(function(err) {
-        console.log(err);
-      })
+      .catch(err => console.log(err));
     }
-  }
+  };
 
   register (msg) {
     const chatId = msg.chat.id;
@@ -59,9 +57,12 @@ class TournamentBot {
     if (tournament && tournament.registering) {
       if (!tournament.players[username]) {
         tournament.addPlayer(username)
-        telegram.sendMessage(chatId, `${username} has been registered! Current players registered: ${Object.keys(tournament.players).length}.`);
+        telegram.sendMessage(chatId, `
+          ${username} has been registered!
+          Current players registered: ${Object.keys(tournament.players).length}.`);
       } else telegram.sendMessage(chatId, `You have already been registered.`);
-    } else telegram.sendMessage(chatId, `Registrations are closed. /start a tournament if you haven't yet.`);
+    } else telegram.sendMessage(chatId, `
+      Registrations are closed. /start a tournament if you haven't yet.`);
   };
 
   go (msg) {
@@ -74,18 +75,20 @@ class TournamentBot {
           if (playerCount >= 1) {
             tournament.registering = false;
             tournament.playing = true;
-            telegram.sendMessage(chatId, `New tournament created with ${playerCount} players! Send /game when you want to start playing.`);
+            telegram.sendMessage(chatId, `
+              New tournament created with ${playerCount} players!
+              Send /game when you want to start playing.`);
             tournament.createTournament();
             const wildcards = tournament.getWildcards();
-            if (wildcards.length === 1) {
-              telegram.sendMessage(chatId, `${wildcards[0].name} is lucky and gets a free pass for this round.`);
-            } else if (wildcards.length > 1) {
-              telegram.sendMessage(chatId, `The following players will get a free pass for this round:`);
+            if (wildcards.length === 1) telegram.sendMessage(chatId, `
+              ${wildcards[0].name} is lucky and gets a free pass for this round.`);
+            else if (wildcards.length > 1) {
+              telegram.sendMessage(chatId, `
+                The following players will get a free pass for this round:`);
               wildcards.map((wildcard) => telegram.sendMessage(chatId, `${wildcard.name}`));
             }
-          } else {
-            telegram.sendMessage(chatId, `You need ${4 - playerCount} more players to start a tournament!`);
-          }
+          } else telegram.sendMessage(chatId, `
+              You need ${4 - playerCount} more players to start a tournament!`);
         } else telegram.sendMessage(chatId, `Your Tournament is already running!`);
       } else telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
     } else telegram.sendMessage(chatId, `You haven't started a tournament yet. Send /start.`);
@@ -96,10 +99,10 @@ class TournamentBot {
     const tournament = this.chatsOpen[chatId]
     const opts = {
       reply_markup: JSON.stringify({
-      keyboard: [[`YES`, `NO`]],
-      one_time_keyboard: true,
-      resize_keyboard: true,
-      selective: true
+        keyboard: [[`YES`, `NO`]],
+        one_time_keyboard: true,
+        resize_keyboard: true,
+        selective: true
       })
     };
     const hideKeyboard = {reply_markup: JSON.stringify({hide_keyboard: true})}
