@@ -174,7 +174,8 @@ class TournamentBot {
         const player1 = nextGame.player1.name;
         const player2 = nextGame.player2.name;
         const round = tournament.nextGame[1] === 0 ? `It's the ${tournament.round}!` : '';
-        const wildcards = tournament.getWildcards();
+        tournament.updateWildcards();
+        const wildcards = tournament.wildcards;
         if (wildcards.length === 1) {
           this.telegram.sendMessage(chatId, `${wildcards[0].name} is lucky and gets a free pass for this round.`);
         } else if (wildcards.length > 1) {
@@ -195,11 +196,14 @@ class TournamentBot {
     const nextGame = tournament.findNextGame();
     if (user.username === tournament.chatAdmin) {
       const resp = match[1];
-      tournament.gamePlayed(resp);
-      if (tournament.round === 'finished') {
-        this.telegram.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
-        tournament.playing = false;
-      }
+      const isValidResult = /\s*\d+\s*-\s*\d+\s*/.test(resp);
+      if(isValidResult) {
+        tournament.gamePlayed(resp);
+        if (tournament.round === 'finished') {
+          this.telegram.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
+          tournament.playing = false;
+        }
+      } else this.telegram.sendMessage(chatId, `Please send your /result in the correct format e.g 5-4`)
     } else this.telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
   }
 

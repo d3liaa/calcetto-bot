@@ -177,7 +177,6 @@ class Tournament {
       if (game.player1 === 0 && game.player2) wildcards.push(game.player2);
       else if (game.player2 === 0 && game.player1) wildcards.push(game.player1);
     });
-
      this.wildcards = wildcards;
   };
 

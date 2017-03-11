@@ -158,10 +158,10 @@ describe('Tournament Methods', function ()  {
   });
 
   describe('result ()', function () {
-    const match = [ '/result 1-2', '1-2', 'index: 0', 'input: /result 1-2' ];
 
+    const chatAdmins = mocks.map(chat => chat.users[0]);
     it('should update the current game with the scores and winner', function () {
-      const chatAdmins = mocks.map(chat => chat.users[0]);
+      const match = [ '/result 1-2', '1-2', 'index: 0', 'input: /result 1-2' ];
 
       const expectedResult = match[1];
       const exResultArr = expectedResult.split('-').map(el => +el);
@@ -198,5 +198,24 @@ describe('Tournament Methods', function ()  {
       currGame.player1.goals.should.be.eql(new_player1_goals);
       currGame.player2.goals.should.be.eql(new_player2_goals);
     });
+
+    it('should only accept numbers as valid results', function () {
+      const match = [ '/result hello-world', 'hello-world', 'index: 0', 'input: /result hello-world' ];
+      const expectedResult = match[1];
+      const msgFromAdmin = chatAdmins[1];
+      const username = msgFromAdmin.from.username;
+      const chatId = msgFromAdmin.chat.id;
+      const tournament = bot.chatsOpen[chatId];
+      const currGame = tournament.rounds[tournament.nextGame[0]][tournament.nextGame[1]];
+
+      bot.result(msgFromAdmin, match);
+      
+      should.equal(currGame.result, undefined);
+
+    });
+  });
+
+  describe('deleteTournament ()', function () {
+
   });
 });
