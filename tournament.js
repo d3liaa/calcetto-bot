@@ -1,5 +1,7 @@
 'use strict';
 
+const renderJSON = require('./d3/renderJSON');
+
 class Tournament {
 
   constructor (chatId, chatAdmin) {
@@ -10,7 +12,6 @@ class Tournament {
     this.registering = true;
     this.playing = false;
     this.rounds = [];
-    this.wildcards = [];
     this.nextGame = [0,0];
     this.finals = {};
     this.round;
@@ -18,8 +19,8 @@ class Tournament {
 
   createTournament () {
     const numberOfPlayers = Object.keys(this.players).length;
-    const numberOfRounds = Math.log2(numberOfPlayers);
     const startingNumber = findNextPowerOfTwo(numberOfPlayers);
+    const numberOfRounds = Math.log2(startingNumber);
     const playersArr = [];
     const firstRound = [];
 
@@ -55,6 +56,15 @@ class Tournament {
     });
 
     this.rounds.push(firstRound);
+    // add placeholder rounds to the rounds
+    let playersCount = startingNumber / 2;
+    for (let i = 1; i < numberOfRounds; i++) {
+      const round = [];
+      for (let j = 0; j < playersCount; i+=2) round.push([null, null]);
+      this.rounds.push(round);
+      playersCount = playersCount / 2;
+    };
+
   };
 
   addPlayer (username) {
@@ -62,8 +72,8 @@ class Tournament {
       name: username,
       played: [],
       goals: 0
-    }
-  }
+    };
+  };
 
   findNextOpponent (username) {
     const rounds = this.rounds;
@@ -96,12 +106,13 @@ class Tournament {
     this.players[loser.name].played.push(game)
     this.players[loser.name].goals+= Math.min.apply(null, result)
 
-    this.nextGame[0] = this.nextGame[1] < rounds[this.nextGame[0]].length
-      ? this.nextGame[0]
-      : this.nextGame[0]++;
-    this.nextGame[1] = this.nextGame[1] < rounds[this.nextGame[0]].length
-      ? this.nextGame[1]++
-      : 0;
+    if (this.nextGame[1] < rounds[this.nextGame[0]].length) {
+      const x = this.nextGame[0];
+      const y = this.nextGame[1] + 1;
+      this.nextGame = [x][y];
+    } else {
+      this.nextGame = [this.nextGame[0] + 1][0];
+    }
 
     for (let i = this.nextGame[0]; i < rounds.length; i++) {
       for(let j = this.nextGame[1]; j < rounds[i].length; j++) {
@@ -168,6 +179,17 @@ class Tournament {
     };
     return ranking.sort((a, b) => b.goals - a.goals)
   };
+
+  getWildcards () {
+    const wildcards = [];
+    const currRound = this.rounds[this.nextGame[0]];
+    currRound.forEach(game => {
+      if (game.player1 === 0 && game.player2) wildcards.push(game.player2);
+      else if (game.player2 === 0 && game.player1) wildcards.push(game.player1);
+    });
+    return wildcards;
+  };
+
 };
 
 const findNextPowerOfTwo = num => {
@@ -182,6 +204,5 @@ const shuffle = (a) => {
 };
 
 const formatResult = (res) => res.replace(/\s/g, '').split('-');
-
 
 module.exports = Tournament;

@@ -76,11 +76,12 @@ class TournamentBot {
             tournament.playing = true;
             telegram.sendMessage(chatId, `New tournament created with ${playerCount} players! Send /game when you want to start playing.`);
             tournament.createTournament();
-            if (tournament.wildcards.length === 1) {
-              telegram.sendMessage(chatId, `${tournament.wildcards[0].name} is lucky and gets a free pass for the first Round.`);
-            } else if (tournament.wildcards.length > 1) {
-              telegram.sendMessage(chatId, `The following players will get a free pass in the first round:`);
-              tournament.wildcards.map((wildcard) => telegram.sendMessage(chatId, `${wildcard.name}`));
+            const wildcards = tournament.getWildcards();
+            if (wildcards.length === 1) {
+              telegram.sendMessage(chatId, `${wildcards[0].name} is lucky and gets a free pass for this round.`);
+            } else if (wildcards.length > 1) {
+              telegram.sendMessage(chatId, `The following players will get a free pass for this round:`);
+              wildcards.map((wildcard) => telegram.sendMessage(chatId, `${wildcard.name}`));
             }
           } else {
             telegram.sendMessage(chatId, `You need ${4 - playerCount} more players to start a tournament!`);
@@ -171,6 +172,13 @@ class TournamentBot {
         const player1 = nextGame.player1.name;
         const player2 = nextGame.player2.name;
         const round = tournament.nextGame[1] === 0 ? `It's the ${tournament.round}!` : '';
+        const wildcards = tournament.getWildcards();
+        if (wildcards.length === 1) {
+          telegram.sendMessage(chatId, `${wildcards[0].name} is lucky and gets a free pass for this round.`);
+        } else if (wildcards.length > 1) {
+          telegram.sendMessage(chatId, `The following players will get a free pass for this round:`);
+          wildcards.map((wildcard) => telegram.sendMessage(chatId, `${wildcard.name}`));
+        }
         telegram.sendMessage(chatId, `${round}
           The next game is between ${player1} and ${player2}!
           Send /result ${player1}-${player2} to declare the winner.`);
@@ -186,7 +194,7 @@ class TournamentBot {
         });
       } else telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
     } else telegram.sendMessage(chatId, `You're playing any tournament yet.`);
-  }
+  };
 
   stats (msg) {
     const chatId = msg.chat.id;
@@ -200,6 +208,6 @@ class TournamentBot {
     } else telegram.sendMessage(chatId, `There is no tournament running, send /start to begin playing`);
   };
 
-}
+};
 
 module.exports = TournamentBot;
