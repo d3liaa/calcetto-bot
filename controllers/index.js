@@ -16,7 +16,7 @@ class TournamentBot {
     this.telegram = telegram
   };
 
-  start (msg) {
+  async start (msg) {
     const chatId = msg.chat.id;
     const response = `
       *Welcome!*
@@ -34,17 +34,17 @@ class TournamentBot {
     You can also play a single match 1 VS 1 by sending /quick
       `;
     if (msg.chat.type === 'group') {
-      telegram.getChatAdministrators(chatId)
+      this.telegram.getChatAdministrators(chatId)
       .then((data) => {
         const chatAdmin = data[0].user.username;
         if (msg.from.username === chatAdmin) {
           if (this.chatsOpen[chatId] === undefined) {
             this.chatsOpen[chatId] = new Tournament(chatId,chatAdmin);
-            telegram.sendMessage(chatId, response, {parse_mode: 'Markdown'});
+            this.telegram.sendMessage(chatId, response, {parse_mode: 'Markdown'});
           } else if (this.chatsOpen[chatId].playing === true) {
-            telegram.sendMessage(chatId, 'You are already playing in a tournament.')
-          } else telegram.sendMessage(chatId, 'You already set up a tournament, send /go to start.')
-        } else telegram.sendMessage(chatId, `Only ${chatAdmin} can send me commands!`);
+            this.telegram.sendMessage(chatId, 'You are already playing in a tournament.')
+          } else this.telegram.sendMessage(chatId, 'You already set up a tournament, send /go to start.')
+        } else this.telegram.sendMessage(chatId, `Only ${chatAdmin} can send me commands!`);
       })
       .catch(function(err) {
         console.log(err);
