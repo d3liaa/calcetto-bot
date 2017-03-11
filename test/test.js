@@ -96,7 +96,7 @@ describe('Tournament Methods', function ()  {
     const chatAdmins = mocks.map(chat => chat.users[0]);
 
     it('should start a tournament with 4 players or more', function () {
-      let tournament;
+      let tournament = 1;
       chatAdmins.forEach((admin, i) => {
         const chatId = mocks[i].chatId
         tournament = bot.chatsOpen[chatId];

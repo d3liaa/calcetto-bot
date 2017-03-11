@@ -65,13 +65,15 @@ class TournamentBot {
   };
 
   go (msg) {
+
+
     const chatId = msg.chat.id;
     const tournament = this.chatsOpen[chatId];
     if (tournament) {
       if (tournament.chatAdmin === msg.from.username) {
         if (!tournament.playing) {
           const playerCount = Object.keys(tournament.players).length;
-          if (playerCount >= 4) {
+          if (playerCount >= 2) {
             tournament.registering = false;
             tournament.playing = true;
             tournament.createTournament();

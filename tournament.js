@@ -52,7 +52,7 @@ class Tournament {
     let playersCount = startingNumber / 2;
     for (let i = 1; i < numberOfRounds; i++) {
       const round = [];
-      for (let j = 0; j < playersCount; i+=2) round.push([null, null]);
+      for (let j = 0; j < playersCount; j+=2) round.push([null, null]);
       this.rounds.push(round);
       playersCount = playersCount / 2;
     };
