@@ -106,10 +106,49 @@ describe('Tournament Methods', function ()  {
         Object.keys(tournament.playingPlayers).length.should.eql(Object.keys(tournament.players).length);
       });
     });
+  });
 
   describe('result', function () {
-    it('should update the current game with the scores', function () {
+    const match = [ '/result 1-2', '1-2', 'index: 0', 'input: /result 1-2' ];
 
+
+    it('should update the current game with the scores and winner', function () {
+      const chatAdmins = mocks.map(chat => chat.users[0]);
+
+      const expectedResult = match[1];
+      const exResultArr = expectedResult.split('-').map(el => +el);
+      const winningScore = Math.max.apply(null, exResultArr);
+      const losingScore = Math.min.apply(null, exResultArr);
+
+      const msgFromAdmin = chatAdmins[0];
+      const username = msgFromAdmin.from.username;
+      const chatId = msgFromAdmin.chat.id;
+      const tournament = bot.chatsOpen[chatId];
+
+      const currGame = tournament.rounds[tournament.nextGame[0]][tournament.nextGame[1]];
+
+      const expectedWinner = exResultArr[0] > exResultArr[1] ? currGame.player1 : currGame.player2;
+      const expectedLoser = exResultArr[0] < exResultArr[1] ? currGame.player1 : currGame.player2;
+      const prev_player1_goals = currGame.player1.goals;
+      const prev_player2_goals = currGame.player2.goals;
+
+      bot.result(msgFromAdmin, match);
+      const actualResult = currGame.result.join('-');
+      const actualWinner = currGame.winner;
+      const actualLoser = currGame.loser;
+
+      const new_player1_goals = expectedWinner === currGame.player1 ?
+      winningScore + prev_player1_goals :
+      losingScore + prev_player1_goals
+      const new_player2_goals = expectedWinner === currGame.player2 ?
+      winningScore + prev_player2_goals :
+      losingScore + prev_player2_goals
+
+      actualResult.should.be.eql(expectedResult);
+      actualWinner.should.be.eql(expectedWinner);
+      actualLoser.should.be.eql(expectedLoser);
+      currGame.player1.goals.should.be.eql(new_player1_goals);
+      currGame.player2.goals.should.be.eql(new_player2_goals);
     });
   });
 });

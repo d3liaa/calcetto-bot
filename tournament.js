@@ -81,7 +81,6 @@ class Tournament {
 
   gamePlayed (result) {
     result = formatResult(result);
-
     const rounds = this.rounds;
     const game = rounds[this.nextGame[0]][this.nextGame[1]];
     const winner = result[0] > result[1] ? game.player1 : game.player2;
@@ -132,7 +131,6 @@ class Tournament {
 
   getStats (username) {
     const player = this.players[username];
-    console.log(player);
     const avgScore = player.goals / player.played.length
 
     let highest = 0;
@@ -181,7 +179,7 @@ const shuffle = (a) => {
   };
 };
 
-const formatResult = (res) => res.replace(/\s/g, '').split('-');
+const formatResult = (res) => res.replace(/\s/g, '').split('-').map(el => +el);
 
 
 module.exports = Tournament;
