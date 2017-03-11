@@ -32,7 +32,8 @@ path.link {
 
 var margin = {top: 30, right: 10, bottom: 10, left: 10},
     width = 960 - margin.left - margin.right,
-    halfWidth = width / 2,
+    // halfWidth = width / 2,
+    halfWidth = 800,
     height = 500 - margin.top - margin.bottom,
     i = 0,
     duration = 500,
@@ -93,7 +94,7 @@ d3.json("./bracket.json", function(json) {
 
   const tree = d3.layout
     .tree()
-    .size([height, width])
+    .size([300, 1000])
     .children(d => d.winners)
     .nodes(root);
 
