@@ -78,13 +78,22 @@ class Tournament {
   };
 
   findNextGame () {
-    while (this.rounds[this.nextGame[0]][this.nextGame[1]].player1 === 0
-      && this.rounds[this.nextGame[0]][this.nextGame[1]].player2 === 0) {
-      if (this.nextGame[1] < this.nextGame[0].length) {
-        this.nextGame[1] = this.nextGame[1] + 1;
-      } else this.nextGame = [this.nextGame[0] + 1, 0];
+    let game = this.rounds[this.nextGame[0]][this.nextGame[1]];
+    while (game.player1 === 0 || game.player2 === 0) {
+      if (game.player1 === 0) this.placeInNextGame(game.player2)
+      else if (game.player2 === 0) this.placeInNextGame(game.player1)
+      if (this.nextGame[1] < this.rounds[this.nextGame[0]].length) {
+        console.log('hello');
+         this.nextGame[1] = this.nextGame[1] + 1;
+         game = this.rounds[this.nextGame[0]][this.nextGame[1]];
+      } else {
+        console.log(this.nextGame);
+        this.nextGame = [this.nextGame[0] + 1, 0];
+        console.log(this.nextGame);
+        game = this.rounds[this.nextGame[0]][this.nextGame[1]];
+      }
     };
-    return this.rounds[this.nextGame[0]][this.nextGame[1]];
+    return game
   };
 
   gamePlayed (result) {
@@ -103,7 +112,7 @@ class Tournament {
 
     this.placeInNextGame(game.winner);
 
-    if (this.nextGame[1] < this.nextGame[0].length) {
+    if (this.nextGame[1] < this.rounds[this.nextGame[0]].length) {
       this.nextGame[1] = this.nextGame[1] + 1;
     } else this.nextGame = [this.nextGame[0] + 1, 0];
 
