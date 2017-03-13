@@ -179,6 +179,7 @@ class TournamentBot {
     if (tournament && tournament.playing) {
       if (user.username === tournament.chatAdmin) {
         const nextGame = tournament.findNextGame();
+        nextGame.playing = true;
         const player1 = nextGame.player1.name;
         const player2 = nextGame.player2.name;
         const round = tournament.nextGame[1] === 0 ? `It's the ${tournament.round}!` : '';
@@ -203,15 +204,19 @@ class TournamentBot {
     const tournament = this.chatsOpen[chatId]
     const nextGame = tournament.findNextGame();
     if (user.username === tournament.chatAdmin) {
-      const resp = match[1];
-      const isValidResult = /\s*\d+\s*-\s*\d+\s*/.test(resp);
-      if(isValidResult) {
-        tournament.gamePlayed(resp);
-        if (tournament.round === 'finished') {
-          this.telegram.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
-          tournament.playing = false;
-        }
-      } else this.telegram.sendMessage(chatId, `Please send your /result in the correct format e.g 5-4`)
+      if(tournament.playing) {
+        const resp = match[1];
+        const isValidResult = /\s*\d+\s*-\s*\d+\s*/.test(resp);
+        if (nextGame.playing) {
+          if(isValidResult) {
+            tournament.gamePlayed(resp);
+            if (tournament.round === 'finished') {
+              this.telegram.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
+              tournament.playing = false;
+            }
+          } else this.telegram.sendMessage(chatId, `Please send your /result in the correct format e.g 5-4`);
+        } else this.telegram.sendMessage(chatId, `You haven't started this game  yet, send /game to begin`);
+      } else this.telegram.sendMessage(chatId, `You haven't started a tournament yet, send /go to begin`);
     } else this.telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
   }
 

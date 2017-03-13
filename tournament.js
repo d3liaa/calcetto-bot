@@ -83,13 +83,10 @@ class Tournament {
       if (game.player1 === 0) this.placeInNextGame(game.player2)
       else if (game.player2 === 0) this.placeInNextGame(game.player1)
       if (this.nextGame[1] < this.rounds[this.nextGame[0]].length) {
-        console.log('hello');
          this.nextGame[1] = this.nextGame[1] + 1;
          game = this.rounds[this.nextGame[0]][this.nextGame[1]];
       } else {
-        console.log(this.nextGame);
         this.nextGame = [this.nextGame[0] + 1, 0];
-        console.log(this.nextGame);
         game = this.rounds[this.nextGame[0]][this.nextGame[1]];
       }
     };
@@ -98,7 +95,6 @@ class Tournament {
 
   gamePlayed (result) {
     const game = this.rounds[this.nextGame[0]][this.nextGame[1]];
-
     game.result = formatResult(result);
     game.winner = game.result[0] > game.result[1] ? game.player1 : game.player2;
     game.loser = game.result[0] < game.result[1] ? game.player1 : game.player2;
