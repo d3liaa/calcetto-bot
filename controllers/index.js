@@ -102,26 +102,34 @@ class TournamentBot {
         one_time_keyboard: true,
         resize_keyboard: true,
         selective: true
-      })
+      }),
+      reply_to_message_id: msg.message_id,
     };
-    const hideKeyboard = {reply_markup: JSON.stringify({hide_keyboard: true})}
 
     if (tournament) {
       if (tournament.chatAdmin === msg.from.username) {
-        this.telegram.sendMessage(chatId, `Are you sure? @${tournament.chatAdmin}`, opts);
-        this.telegram.onText(/YES/, () => {
-          delete this.chatsOpen[chatId];
-          this.telegram.sendMessage(chatId, `Current tournament deleted.`, hideKeyboard);
-        })
-        this.telegram.onText(/NO/, () => {
-          this.telegram.sendMessage(chatId, `The tournament has not been deleted.`, hideKeyboard);
-        })
+        this.telegram.sendMessage(chatId, `Are you sure?`, opts);
       } else {
         this.telegram.sendMessage(chatId, `Only the group admin can send me commands!`);
       }
     } else {
       this.telegram.sendMessage(chatId, `You are not playing any tournament!`);
     }
+  }
+
+  confirmDeletion (msg) {
+    const chatId = msg.chat.id;
+    const hideKeyboard = {reply_markup: JSON.stringify({hide_keyboard: true})}
+
+    delete this.chatsOpen[chatId];
+    this.telegram.sendMessage(chatId, `Current tournament deleted.`, hideKeyboard);
+  }
+
+  cancelDeletion (msg) {
+    const chatId = msg.chat.id;
+    const hideKeyboard = {reply_markup: JSON.stringify({hide_keyboard: true})}
+
+    this.telegram.sendMessage(chatId, `The tournament has not been deleted.`, hideKeyboard);
   }
 
   help (msg) {
