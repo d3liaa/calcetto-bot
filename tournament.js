@@ -121,7 +121,11 @@ class Tournament {
       };
     };
 
-    this.round = this.round === 'Final' ? 'finished' : this.chooseRound();
+    if (this.round === 'Final') {
+      this.round = 'finished';
+      this.rounds.push(game.winner);
+    } else this.round = this.chooseRound();
+
   };
 
   chooseRound () {
