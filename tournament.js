@@ -1,6 +1,7 @@
 'use strict';
 
-const Match = require('./match.js');
+const renderJSON = require('./d3/renderJSON');
+const Match = require('./match');
 
 class Tournament {
 
@@ -48,9 +49,8 @@ class Tournament {
     };
 
     this.root = matches.shift();
-
     this.root.sanitise();
-
+    renderJSON(this.root);
   };
 
   addPlayer (name, id) {

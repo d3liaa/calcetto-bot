@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -33,7 +32,8 @@ path.link {
 
 var margin = {top: 30, right: 10, bottom: 10, left: 10},
     width = 960 - margin.left - margin.right,
-    halfWidth = width / 2,
+    // halfWidth = width / 2,
+    halfWidth = 800,
     height = 500 - margin.top - margin.bottom,
     i = 0,
     duration = 500,
@@ -56,8 +56,7 @@ var getChildren = function(d){
     ;
 
 var tree = d3.layout.tree()
-    .size([height, width])
-    ;
+    .size([height, width]);
 
 var diagonal = d3.svg.diagonal()
     .projection(function(d) { return [d.y, d.x]; });
@@ -87,19 +86,31 @@ var vis = d3.select("#chart").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.json("./bracket.json", function(json) {
+d3.json("./bracket.json", function (json) {
+  json = {
+    name: 'undefined - undefined',
+    winners:
+      [
+        { name: '127362181 - 127362182',
+          winners: [] },
+        { name: '127362183 - 127362184',
+          winners: [] }
+      ]
+  };
+  console.log('json', json)
   root = json;
   root.x0 = height / 2;
   root.y0 = width / 2;
 
-  var t1 = d3.layout.tree().size([height, halfWidth]).children(function(d){return d.winners;}),
-      t2 = d3.layout.tree().size([height, halfWidth]).children(function(d){return d.challengers;});
-  t1.nodes(root);
-  t2.nodes(root);
+  const tree = d3.layout
+    .tree()
+    .size([300, 1000])
+    .children(d => d.children)
+    .nodes(root);
 
-  var rebuildChildren = function(node){
+  var rebuildChildren = function(node) {
     node.children = getChildren(node);
-    if(node.children) node.children.forEach(rebuildChildren);
+    if (node.children) node.children.forEach(rebuildChildren);
   }
   rebuildChildren(root);
   root.isRight = false;
