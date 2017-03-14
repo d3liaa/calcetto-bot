@@ -1,5 +1,6 @@
 'use strict';
 
+const Match = require('./match.js');
 const renderJSON = require('./d3/renderJSON');
 
 class Tournament {
@@ -11,7 +12,8 @@ class Tournament {
     this.playingPlayers = {};
     this.registering = true;
     this.playing = false;
-    this.rounds = [];
+    // this.rounds = [];
+    this.root;
     this.nextGame = [0, 0];
     this.finals = {};
     this.round;
@@ -20,10 +22,44 @@ class Tournament {
   createTournament () {
     const numberOfPlayers = Object.keys(this.players).length;
     const startingNumber = findNextPowerOfTwo(numberOfPlayers);
-    const numberOfRounds = Math.log2(startingNumber);
-    const playersArr = [];
-    const firstRound = [];
+    const numberOfZeros = startingNumber - numberOfPlayers;
+    const playersArr = Object.keys(this.players);
+    const matches = [];
 
+    for (let i = 0; i < numberOfZeros; i++) {
+      playersArr.splice(i, 0, 0)
+    }
+
+    for (let i = 0; i < startingNumber; i+=2) {
+      const match = new Match();
+      match.player1 = playersArr[i]
+      match.player2 = playersArr[i+1]
+      matches.push(match);
+    };
+
+    let remainingMatches = startingNumber / 2;
+
+    while (remainingMatches > 1) {
+      remainingMatches /= 2;
+      for (let i = 0; i < remainingMatches; i++) {
+        const match = new Match();
+        match.leftChild = matches.shift();
+        match.rightChild = matches.shift();
+        matches.push(match);
+      };
+    };
+
+    this.root = matches.shift();
+
+    for (let i = 1; i < numberOfRounds; i++) {
+      const round = [];
+      for (let j = 0; j < playersCount; j+=2) round.push({player1: null, player2: null});
+      this.rounds.push(round);
+      playersCount = playersCount / 2;
+    };
+
+    // const firstRound = [];
+    // const numberOfRounds = Math.log2(startingNumber);
     this.finals = {
       quarterFinals: numberOfRounds - 3,
       semiFinals: numberOfRounds - 2,
