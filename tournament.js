@@ -51,47 +51,51 @@ class Tournament {
 
     this.root = matches.shift();
 
-    for (let i = 1; i < numberOfRounds; i++) {
-      const round = [];
-      for (let j = 0; j < playersCount; j+=2) round.push({player1: null, player2: null});
-      this.rounds.push(round);
-      playersCount = playersCount / 2;
-    };
+    this.root.sanitise();
+
+    console.log('root', this.root);
+
+    // for (let i = 1; i < numberOfRounds; i++) {
+    //   const round = [];
+    //   for (let j = 0; j < playersCount; j+=2) round.push({player1: null, player2: null});
+    //   this.rounds.push(round);
+    //   playersCount = playersCount / 2;
+    // };
 
     // const firstRound = [];
     // const numberOfRounds = Math.log2(startingNumber);
-    this.finals = {
-      quarterFinals: numberOfRounds - 3,
-      semiFinals: numberOfRounds - 2,
-      final: numberOfRounds - 1
-    };
-
-    this.round = this.chooseRound();
-
-    for (let player in this.players) {
-      if (this.players.hasOwnProperty(player)) {
-        playersArr.push(this.players[player]);
-        this.playingPlayers[player] = this.players[player];
-      };
-    };
-
-    while (playersArr.length < startingNumber) playersArr.push(0);
-
-    shuffle(playersArr);
-
-    for (let i = 0; i < playersArr.length; i += 2) {
-      firstRound.push({player1: playersArr[i], player2: playersArr[i+1]});
-    };
-
-    this.rounds.push(firstRound);
-
-    let playersCount = startingNumber / 2;
-    for (let i = 1; i < numberOfRounds; i++) {
-      const round = [];
-      for (let j = 0; j < playersCount; j+=2) round.push({player1: null, player2: null});
-      this.rounds.push(round);
-      playersCount = playersCount / 2;
-    };
+    // this.finals = {
+    //   quarterFinals: numberOfRounds - 3,
+    //   semiFinals: numberOfRounds - 2,
+    //   final: numberOfRounds - 1
+    // };
+    //
+    // this.round = this.chooseRound();
+    //
+    // for (let player in this.players) {
+    //   if (this.players.hasOwnProperty(player)) {
+    //     playersArr.push(this.players[player]);
+    //     this.playingPlayers[player] = this.players[player];
+    //   };
+    // };
+    //
+    // while (playersArr.length < startingNumber) playersArr.push(0);
+    //
+    // shuffle(playersArr);
+    //
+    // for (let i = 0; i < playersArr.length; i += 2) {
+    //   firstRound.push({player1: playersArr[i], player2: playersArr[i+1]});
+    // };
+    //
+    // this.rounds.push(firstRound);
+    //
+    // let playersCount = startingNumber / 2;
+    // for (let i = 1; i < numberOfRounds; i++) {
+    //   const round = [];
+    //   for (let j = 0; j < playersCount; j+=2) round.push({player1: null, player2: null});
+    //   this.rounds.push(round);
+    //   playersCount = playersCount / 2;
+    // };
 
   };
 
