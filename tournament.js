@@ -78,8 +78,13 @@ class Tournament {
   };
 
   findNextGame () {
-    while (this.rounds[this.nextGame[0]][this.nextGame[1]].player1 === 0
-      && this.rounds[this.nextGame[0]][this.nextGame[1]].player2 === 0) {
+    let game = this.rounds[this.nextGame[0]][this.nextGame[1]];
+    while (game.player1 === 0 || game.player2 === 0) {
+      if (game.player1 === 0) {
+        this.placeInNextGame(game.player2)
+      } else if (game.player2 === 0) {
+        this.placeInNextGame(game.player1)
+      }
       if (this.nextGame[1] < this.nextGame[0].length) {
         this.nextGame[1] = this.nextGame[1] + 1;
       } else this.nextGame = [this.nextGame[0] + 1, 0];
