@@ -1,10 +1,5 @@
 node_modules
-token.js
-congrats.jpg
-winner.gif
-messilegend.mp4
 .env.json
 npm-debug.log
-.env.json.default
+env.json
 crt.pem
-key.pem

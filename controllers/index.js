@@ -4,7 +4,7 @@ const nconf = require('nconf');
 const TelegramBot = require('node-telegram-bot-api');
 const Tournament = require('../tournament.js');
 
-nconf.argv().env().file({ file: './.env.json.default' });
+nconf.argv().env().file({ file: './env.json' });
 
 const token = nconf.get('TELEGRAM_TOKEN');
 const telegram = new TelegramBot(token, {polling: true});
