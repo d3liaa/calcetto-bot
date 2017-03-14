@@ -1,7 +1,5 @@
 'use strict';
 
-const renderJSON = require('./d3/renderJSON');
-
 class Tournament {
 
   constructor (chatId, chatAdmin) {
@@ -59,9 +57,10 @@ class Tournament {
 
   };
 
-  addPlayer (username) {
-    this.players[username] = {
-      name: username,
+  addPlayer (name, id) {
+    this.players[id] = {
+      name,
+      id,
       played: [],
       goals: 0
     };
@@ -71,8 +70,8 @@ class Tournament {
     const rounds = this.rounds;
     for (let i = this.nextGame[0]; i < rounds.length; i++) {
       for(let j = this.nextGame[1]; j < rounds[i].length; j++) {
-        if (rounds[i][j].player1.name === username) return rounds[i][j].player2;
-        else if (rounds[i][j].player2.name === username) return rounds[i][j].player1;
+        if (rounds[i][j].player1.name === username) return rounds[i][j].player2.name;
+        else if (rounds[i][j].player2.name === username) return rounds[i][j].player1.name;
       };
     };
   };
@@ -82,11 +81,11 @@ class Tournament {
     while (game.player1 === 0 || game.player2 === 0) {
       if (game.player1 === 0) this.placeInNextGame(game.player2)
       else if (game.player2 === 0) this.placeInNextGame(game.player1)
-      if (this.nextGame[1] < this.rounds[this.nextGame[0]].length) {
-         this.nextGame[1] = this.nextGame[1] + 1;
+      if (this.nextGame[1] < this.rounds[this.nextGame[0]].length - 1) {
+         this.nextGame[1]++
          game = this.rounds[this.nextGame[0]][this.nextGame[1]];
       } else {
-        this.nextGame = [this.nextGame[0] + 1, 0];
+        this.nextGame = [this.nextGame[0]++, 0];
         game = this.rounds[this.nextGame[0]][this.nextGame[1]];
       }
     };
@@ -100,15 +99,14 @@ class Tournament {
     game.loser = game.result[0] < game.result[1] ? game.player1 : game.player2;
 
     delete this.playingPlayers[game.loser];
-
-    this.players[game.winner.name].played.push(game);
-    this.players[game.loser.name].played.push(game);
-    this.players[game.winner.name].goals += Math.max.apply(null, game.result);
-    this.players[game.loser.name].goals += Math.min.apply(null, game.result);
+    this.players[game.winner.id].played.push(game);
+    this.players[game.loser.id].played.push(game);
+    this.players[game.winner.id].goals += Math.max.apply(null, game.result);
+    this.players[game.loser.id].goals += Math.min.apply(null, game.result);
 
     this.placeInNextGame(game.winner);
 
-    if (this.nextGame[1] < this.rounds[this.nextGame[0]].length) {
+    if (this.nextGame[1] < this.rounds[this.nextGame[0]].length - 1) {
       this.nextGame[1] = this.nextGame[1] + 1;
     } else this.nextGame = [this.nextGame[0] + 1, 0];
 

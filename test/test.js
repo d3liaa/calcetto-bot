@@ -83,9 +83,9 @@ describe('Tournament Methods', function ()  {
       mocks.forEach(chat => {
         tournament = bot.chatsOpen[chat.chatId]
         chat.users.forEach(msg => {
-          let username = msg.from.username;
+          let userId = msg.from.id
           bot.register(msg)
-          tournament.players.should.have.property(username);
+          tournament.players.should.have.property(userId);
         })
       })
       tournament.playing.should.be.false;
@@ -168,7 +168,7 @@ describe('Tournament Methods', function ()  {
       const winningScore = Math.max.apply(null, exResultArr);
       const losingScore = Math.min.apply(null, exResultArr);
 
-      const msgFromAdmin = chatAdmins[0];
+      const msgFromAdmin = chatAdmins[1];
       const username = msgFromAdmin.from.username;
       const chatId = msgFromAdmin.chat.id;
       const tournament = bot.chatsOpen[chatId];
@@ -186,23 +186,29 @@ describe('Tournament Methods', function ()  {
 
       bot.game(msgFromAdmin);
       bot.result(msgFromAdmin, correctMatch);
-      const actualResult = currGame.result.join('-');
-      const actualWinner = currGame.winner;
-      const actualLoser = currGame.loser;
+      bot.game(msgFromAdmin);
+      bot.result(msgFromAdmin, correctMatch);
+      bot.game(msgFromAdmin);
+      bot.result(msgFromAdmin, correctMatch);
+      if (currGame.playing) {
+        const actualResult = currGame.result.join('-');
+        const actualWinner = currGame.winner;
+        const actualLoser = currGame.loser;
 
-      const new_player1_goals = expectedWinner === currGame.player1 ?
-      winningScore + prev_player1_goals :
-      losingScore + prev_player1_goals
-      const new_player2_goals = expectedWinner === currGame.player2 ?
-      winningScore + prev_player2_goals :
-      losingScore + prev_player2_goals
+        const new_player1_goals = expectedWinner === currGame.player1 ?
+        winningScore + prev_player1_goals :
+        losingScore + prev_player1_goals
+        const new_player2_goals = expectedWinner === currGame.player2 ?
+        winningScore + prev_player2_goals :
+        losingScore + prev_player2_goals
 
-      should.not.equal(currGame.result, undefined)
-      actualResult.should.be.eql(expectedResult);
-      actualWinner.should.be.eql(expectedWinner);
-      actualLoser.should.be.eql(expectedLoser);
-      currGame.player1.goals.should.be.eql(new_player1_goals);
-      currGame.player2.goals.should.be.eql(new_player2_goals);
+        should.not.equal(currGame.result, undefined)
+        actualResult.should.be.eql(expectedResult);
+        actualWinner.should.be.eql(expectedWinner);
+        actualLoser.should.be.eql(expectedLoser);
+        currGame.player1.goals.should.be.eql(new_player1_goals);
+        currGame.player2.goals.should.be.eql(new_player2_goals);
+      }
     });
 
     it('should only accept numbers as valid results', function () {

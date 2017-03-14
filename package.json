@@ -10,7 +10,7 @@
     "fs": "0.0.1-security",
     "nconf": "^0.8.4",
     "node-telegram-bot-api": "^0.24.0",
-    "nodemon": "^1.11.0",
+    "nodemon": "^1.5.0",
     "svg2png": "^4.1.1"
   },
   "devDependencies": {

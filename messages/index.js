@@ -59,16 +59,20 @@ You can control me by sending these commands:
     return `New tournament created with ${playerCount} players! Send /game when you want to start playing.`
   },
 
-  wildcard: (wildcards) => {
+  wildcard: (round, wildcards) => {
+    if(wildcards.length === 0) return '';
     if(wildcards.length === 1) {
       return `
-        ${wildcards[0].name} is lucky and gets a free pass for this round.`
+${round}
+${wildcards[0].name} is lucky and gets a free pass for this round.
+`
     } else {
       const wildcardNames = wildcards.map(wildcard => wildcard.name);
-      const wildcardString = wildcards.join(`\r\n`);
+      const wildcardString = wildcardNames.join(`\r\n`);
       return `
-      The following players will get a free pass for this round:
-      ${wildcards}
+${round}
+The following players will get a free pass for this round:
+${wildcardString}
       `
     }
   },
@@ -81,8 +85,8 @@ You can control me by sending these commands:
 
   knockedOut: `You have already been knocked out!`,
 
-  game: (round, player1, player2) => {
-  return   `${round}
+  game: (player1, player2) => {
+  return   `
 The next game is between ${player1} and ${player2}!
 Send /result ${player1}-${player2} to declare the winner.`
   },
@@ -91,7 +95,11 @@ Send /result ${player1}-${player2} to declare the winner.`
 
   resultFormat: `Please send your /result in the correct format e.g 5-4`,
 
-  winner: (winner) => {
+  overallWinner: (winner) => {
      return `Congratulations! ${winner} won the tournament.`
+  },
+
+  gameWinner: (winner) => {
+    return `${winner} won the last game`
   }
 }
