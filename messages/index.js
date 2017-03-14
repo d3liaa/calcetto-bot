@@ -59,6 +59,10 @@ You can control me by sending these commands:
     return `New tournament created with ${playerCount} players! Send /game when you want to start playing.`
   },
 
+  notEnoughPlayers: (playerCount) => {
+    return `You need ${4 - playerCount} more players to start a tournament`
+  },
+
   wildcard: (round, wildcards) => {
     if(wildcards.length === 0) return '';
     if(wildcards.length === 1) {

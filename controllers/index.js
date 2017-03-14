@@ -69,12 +69,52 @@ class TournamentBot {
             tournament.playing = true;
             tournament.createTournament();
             this.telegram.sendMessage(chatId, messages.newTournament(playerCount));
-            tournament.updateWildcards();
-          } else this.telegram.sendMessage(chatId, `You need ${4 - playerCount} more players to start a tournament!`);
+          } else this.telegram.sendMessage(chatId, messages.notEnoughPlayers(playerCount));
         } else this.telegram.sendMessage(chatId, messages.alreadyPlaying);
       } else this.telegram.sendMessage(chatId, messages.notAdmin(chatAdmin.name));
     } else this.telegram.sendMessage(chatId, messages.notPlaying);
   };
+
+  game (msg) {
+    const chatId = msg.chat.id;
+    const user = msg.from;
+    const username = user.first_name;
+    const tournament = this.chatsOpen[chatId];
+    const chatAdmin = tournament.chatAdmin;
+    if (tournament && tournament.playing) {
+      if (user.id === chatAdmin.id) {
+        const nextGame = tournament.root.findNextGame();
+        nextGame.playing = true;
+        const player1 = tournament.players[nextGame.player1].name
+        const player2 = tournament.players[nextGame.player2].name
+        this.telegram.sendMessage(chatId, `${messages.game(player1, player2)}`);
+      } else this.telegram.sendMessage(chatId, messages.notAdmin(chatAdmin.name));
+    } else this.telegram.sendMessage(chatId, messages.notPlaying);
+  };
+
+  result(msg, match) {
+    const chatId = msg.chat.id;
+    const user = msg.from;
+    const tournament = this.chatsOpen[chatId];
+    const chatAdmin = tournament.chatAdmin;
+    const nextGame = tournament.root.findNextGame();
+    if (user.id === chatAdmin.id) {
+      if (tournament.playing) {
+        const result = match[1];
+        const isValidResult = /\s*\d+\s*-\s*\d+\s*/.test(result);
+        if (nextGame.playing) {
+          if (isValidResult) {
+            tournament.gamePlayed(result, nextGame)
+            const winner = tournament.players[nextGame.winner].name
+            if (tournament.root === nextGame) {
+              this.telegram.sendMessage(chatId, messages.overallWinner(winner));
+              tournament.playing = false;
+            } else this.telegram.sendMessage(chatId, messages.gameWinner(winner));
+          } else this.telegram.sendMessage(chatId, messages.resultFormat);
+        } else this.telegram.sendMessage(chatId, messages.gameNotStarted);
+      } else this.telegram.sendMessage(chatId, messages.notPlaying);
+    } else this.telegram.sendMessage(chatId, messages.notAdmin(chatAdmin.name));
+  }
 
   deleteTournament (msg) {
     const chatId = msg.chat.id;
@@ -112,6 +152,7 @@ class TournamentBot {
     this.telegram.sendMessage(chatId, `The tournament has not been deleted.`, hideKeyboard);
   }
 
+
   help (msg) {
     const chatId = msg.chat.id;
     const resp = messages.help;
@@ -136,51 +177,7 @@ class TournamentBot {
     } else this.telegram.sendMessage(chatId, messages.notPlaying);
   }
 
-  game (msg) {
-    const chatId = msg.chat.id;
-    const user = msg.from;
-    const username = user.first_name;
-    const tournament = this.chatsOpen[chatId];
-    const chatAdmin = tournament.chatAdmin;
-    if (tournament && tournament.playing) {
-      if (user.id === chatAdmin.id) {
-        const nextGame = tournament.findNextGame();
-        nextGame.playing = true;
-        console.log(nextGame.player1.name);
-        console.log(nextGame.playe2.name);
-        const player1 = nextGame.player1.name;
-        const player2 = nextGame.player2.name;
-        const round = tournament.nextGame[1] === 0 ? `It's the ${tournament.round}!` : '';
-        tournament.updateWildcards();
-        const wildcards = tournament.wildcards;
-        this.telegram.sendMessage(chatId, `${messages.wildcard(round, wildcards)} ${messages.game(player1, player2)}`);
-      } else this.telegram.sendMessage(chatId, messages.notAdmin(chatAdmin.name));
-    } else this.telegram.sendMessage(chatId, messages.notPlaying);
-  };
 
-  result(msg, match) {
-    const chatId = msg.chat.id;
-    const user = msg.from;
-    const tournament = this.chatsOpen[chatId];
-    const chatAdmin = tournament.chatAdmin;
-    const nextGame = tournament.findNextGame();
-    if (user.id === chatAdmin.id) {
-      if(tournament.playing) {
-        const resp = match[1];
-        const isValidResult = /\s*\d+\s*-\s*\d+\s*/.test(resp);
-        if (nextGame.playing) {
-          if(isValidResult) {
-            tournament.gamePlayed(resp)
-            const winner = nextGame.winner.name;
-            if (tournament.round === 'finished') {
-              this.telegram.sendMessage(chatId, messages.overallWinner(winner));
-              tournament.playing = false;
-            } else this.telegram.sendMessage(chatId, messages.gameWinner(winner));
-          } else this.telegram.sendMessage(chatId, messages.resultFormat);
-        } else this.telegram.sendMessage(chatId, messages.gameNotStarted);
-      } else this.telegram.sendMessage(chatId, messages.notPlaying);
-    } else this.telegram.sendMessage(chatId, messages.notAdmin(chatAdmin.name));
-  }
 
   stats (msg) {
     const chatId = msg.chat.id;
