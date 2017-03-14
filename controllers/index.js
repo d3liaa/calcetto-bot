@@ -102,26 +102,34 @@ class TournamentBot {
         one_time_keyboard: true,
         resize_keyboard: true,
         selective: true
-      })
+      }),
+      reply_to_message_id: msg.message_id,
     };
-    const hideKeyboard = {reply_markup: JSON.stringify({hide_keyboard: true})}
 
     if (tournament) {
       if (tournament.chatAdmin === msg.from.username) {
-        this.telegram.sendMessage(chatId, `Are you sure? @${tournament.chatAdmin}`, opts);
-        this.telegram.onText(/YES/, () => {
-          delete this.chatsOpen[chatId];
-          this.telegram.sendMessage(chatId, `Current tournament deleted.`, hideKeyboard);
-        })
-        this.telegram.onText(/NO/, () => {
-          this.telegram.sendMessage(chatId, `The tournament has not been deleted.`, hideKeyboard);
-        })
+        this.telegram.sendMessage(chatId, `Are you sure?`, opts);
       } else {
         this.telegram.sendMessage(chatId, `Only the group admin can send me commands!`);
       }
     } else {
       this.telegram.sendMessage(chatId, `You are not playing any tournament!`);
     }
+  }
+
+  confirmDeletion (msg) {
+    const chatId = msg.chat.id;
+    const hideKeyboard = {reply_markup: JSON.stringify({hide_keyboard: true})}
+
+    delete this.chatsOpen[chatId];
+    this.telegram.sendMessage(chatId, `Current tournament deleted.`, hideKeyboard);
+  }
+
+  cancelDeletion (msg) {
+    const chatId = msg.chat.id;
+    const hideKeyboard = {reply_markup: JSON.stringify({hide_keyboard: true})}
+
+    this.telegram.sendMessage(chatId, `The tournament has not been deleted.`, hideKeyboard);
   }
 
   help (msg) {
@@ -171,6 +179,7 @@ class TournamentBot {
     if (tournament && tournament.playing) {
       if (user.username === tournament.chatAdmin) {
         const nextGame = tournament.findNextGame();
+        nextGame.playing = true;
         const player1 = nextGame.player1.name;
         const player2 = nextGame.player2.name;
         const round = tournament.nextGame[1] === 0 ? `It's the ${tournament.round}!` : '';
@@ -195,15 +204,19 @@ class TournamentBot {
     const tournament = this.chatsOpen[chatId]
     const nextGame = tournament.findNextGame();
     if (user.username === tournament.chatAdmin) {
-      const resp = match[1];
-      const isValidResult = /\s*\d+\s*-\s*\d+\s*/.test(resp);
-      if(isValidResult) {
-        tournament.gamePlayed(resp);
-        if (tournament.round === 'finished') {
-          this.telegram.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
-          tournament.playing = false;
-        }
-      } else this.telegram.sendMessage(chatId, `Please send your /result in the correct format e.g 5-4`)
+      if(tournament.playing) {
+        const resp = match[1];
+        const isValidResult = /\s*\d+\s*-\s*\d+\s*/.test(resp);
+        if (nextGame.playing) {
+          if(isValidResult) {
+            tournament.gamePlayed(resp);
+            if (tournament.round === 'finished') {
+              this.telegram.sendMessage(chatId, `Congratulations! ${nextGame.winner.name} won the tournament.`);
+              tournament.playing = false;
+            }
+          } else this.telegram.sendMessage(chatId, `Please send your /result in the correct format e.g 5-4`);
+        } else this.telegram.sendMessage(chatId, `You haven't started this game  yet, send /game to begin`);
+      } else this.telegram.sendMessage(chatId, `You haven't started a tournament yet, send /go to begin`);
     } else this.telegram.sendMessage(chatId, `Only ${tournament.chatAdmin} can send me commands!`);
   }
 

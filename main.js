@@ -13,6 +13,10 @@ bot.telegram.onText(/\/go/, (msg) => bot.go(msg));
 
 bot.telegram.onText(/\/deletetournament/, (msg) => bot.deleteTournament(msg));
 
+bot.telegram.onText(/YES/ , (msg) => bot.confirmDeletion(msg));
+
+bot.telegram.onText(/NO/, (msg) => bot.cancelDeletion(msg));
+
 bot.telegram.onText(/\/help/, (msg) => bot.help(msg));
 
 bot.telegram.onText(/\/next/, (msg) => bot.next(msg));

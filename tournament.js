@@ -80,21 +80,21 @@ class Tournament {
   findNextGame () {
     let game = this.rounds[this.nextGame[0]][this.nextGame[1]];
     while (game.player1 === 0 || game.player2 === 0) {
-      if (game.player1 === 0) {
-        this.placeInNextGame(game.player2)
-      } else if (game.player2 === 0) {
-        this.placeInNextGame(game.player1)
+      if (game.player1 === 0) this.placeInNextGame(game.player2)
+      else if (game.player2 === 0) this.placeInNextGame(game.player1)
+      if (this.nextGame[1] < this.rounds[this.nextGame[0]].length) {
+         this.nextGame[1] = this.nextGame[1] + 1;
+         game = this.rounds[this.nextGame[0]][this.nextGame[1]];
+      } else {
+        this.nextGame = [this.nextGame[0] + 1, 0];
+        game = this.rounds[this.nextGame[0]][this.nextGame[1]];
       }
-      if (this.nextGame[1] < this.nextGame[0].length) {
-        this.nextGame[1] = this.nextGame[1] + 1;
-      } else this.nextGame = [this.nextGame[0] + 1, 0];
     };
-    return this.rounds[this.nextGame[0]][this.nextGame[1]];
+    return game
   };
 
   gamePlayed (result) {
     const game = this.rounds[this.nextGame[0]][this.nextGame[1]];
-
     game.result = formatResult(result);
     game.winner = game.result[0] > game.result[1] ? game.player1 : game.player2;
     game.loser = game.result[0] < game.result[1] ? game.player1 : game.player2;
@@ -108,7 +108,7 @@ class Tournament {
 
     this.placeInNextGame(game.winner);
 
-    if (this.nextGame[1] < this.nextGame[0].length) {
+    if (this.nextGame[1] < this.rounds[this.nextGame[0]].length) {
       this.nextGame[1] = this.nextGame[1] + 1;
     } else this.nextGame = [this.nextGame[0] + 1, 0];
 
