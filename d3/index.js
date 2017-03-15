@@ -3,7 +3,6 @@
 const printPNG = require('./png.js');
 const createPNG = (root, players, callback) => {
   root = Object.assign({}, root);
-
   const arrayify = (node) => {
     const player1 = node.player1 ? players[node.player1].name : '';
     const player2 = node.player2 ? players[node.player2].name : '';
