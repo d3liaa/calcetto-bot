@@ -31,7 +31,7 @@ mocks.forEach(chat => {
   });
 });
 
-describe('Tournament Methods', function ()  {
+describe('Tournament Bot', function ()  {
   let getChatAdministrators;
   let sendMessage;
   const chatAdmins = mocks.map(chat => chat.users[0]);
@@ -167,22 +167,21 @@ describe('Tournament Methods', function ()  {
       player2.goals.should.be.eql(new_player2_goals);
     });
 
-    // it('should only accept numbers as valid results', function () {
-    //   const incorrectMatch = [ '/result hello-world', 'hello-world', 'index: 0', 'input: /result hello-world' ];
-    //   const expectedResult = incorrectMatch[1];
-    //   const msgFromAdmin = chatAdmins[0];
-    //   const username = msgFromAdmin.from.username;
-    //   const chatId = msgFromAdmin.chat.id;
-    //   const tournament = bot.chatsOpen[chatId];
-    //   // const currGame = tournament.rounds[tournament.nextGame[0]][tournament.nextGame[1]];\
-    //   bot.go(msgFromAdmin);
-    //   bot.game(msgFromAdmin);
-    //   console.log(tournament);
-    //   // bot.result(msgFromAdmin, incorrectMatch);
-    //
-    //   // should.equal(currGame.result, undefined);
-    //
-    // });
+    it('should only accept numbers as valid results', function () {
+      const incorrectMatch = [ '/result hello-world', 'hello-world', 'index: 0', 'input: /result hello-world' ];
+      const expectedResult = incorrectMatch[1];
+      const msgFromAdmin = chatAdmins[1];
+      const username = msgFromAdmin.from.username;
+      const chatId = msgFromAdmin.chat.id;
+      const tournament = bot.chatsOpen[chatId];
+      const currGame = tournament.root.findNextGame()
+      bot.go(msgFromAdmin);
+      bot.game(msgFromAdmin);
+      bot.result(msgFromAdmin, incorrectMatch);
+
+      should.equal(currGame.result, undefined);
+
+    });
   });
   describe('deleteTournament', function () {
     const msgFromAdmin = chatAdmins[0];
