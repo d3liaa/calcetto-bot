@@ -1,6 +1,6 @@
 'use strict';
 
-const renderJSON = require('./d3/renderJSON');
+const Match = require('./match.js');
 
 class Tournament {
 
@@ -8,11 +8,10 @@ class Tournament {
     this.chatId = chatId;
     this.chatAdmin = chatAdmin;
     this.players = {};
-    this.playingPlayers = {};
+    this.playingPlayers = [];
     this.registering = true;
     this.playing = false;
-    this.rounds = [];
-    this.nextGame = [0, 0];
+    this.root;
     this.finals = {};
     this.round;
   };
@@ -20,48 +19,44 @@ class Tournament {
   createTournament () {
     const numberOfPlayers = Object.keys(this.players).length;
     const startingNumber = findNextPowerOfTwo(numberOfPlayers);
-    const numberOfRounds = Math.log2(startingNumber);
-    const playersArr = [];
-    const firstRound = [];
+    const numberOfZeros = startingNumber - numberOfPlayers;
+    const playersArr = Object.keys(this.players);
+    const matches = [];
+    this.playingPlayers = Object.keys(this.players);
 
-    this.finals = {
-      quarterFinals: numberOfRounds - 3,
-      semiFinals: numberOfRounds - 2,
-      final: numberOfRounds - 1
+    for (let i = 0; i < numberOfZeros; i++) {
+      playersArr.splice(i, 0, 0)
+    }
+
+    for (let i = 0; i < startingNumber; i+=2) {
+      const match = new Match();
+      match.player1 = playersArr[i]
+      match.player2 = playersArr[i+1]
+      matches.push(match);
     };
 
-    this.round = this.chooseRound();
+    let remainingMatches = startingNumber / 2;
 
-    for (let player in this.players) {
-      if (this.players.hasOwnProperty(player)) {
-        playersArr.push(this.players[player]);
-        this.playingPlayers[player] = this.players[player];
+    while (remainingMatches > 1) {
+      remainingMatches /= 2;
+      for (let i = 0; i < remainingMatches; i++) {
+        const match = new Match();
+        match.leftChild = matches.shift();
+        match.rightChild = matches.shift();
+        matches.push(match);
       };
     };
 
-    while (playersArr.length < startingNumber) playersArr.push(0);
+    this.root = matches.shift();
 
-    shuffle(playersArr);
-
-    for (let i = 0; i < playersArr.length; i += 2) {
-      firstRound.push({player1: playersArr[i], player2: playersArr[i+1]});
-    };
-
-    this.rounds.push(firstRound);
-
-    let playersCount = startingNumber / 2;
-    for (let i = 1; i < numberOfRounds; i++) {
-      const round = [];
-      for (let j = 0; j < playersCount; j+=2) round.push({player1: null, player2: null});
-      this.rounds.push(round);
-      playersCount = playersCount / 2;
-    };
+    this.root.sanitise();
 
   };
 
-  addPlayer (username) {
-    this.players[username] = {
-      name: username,
+  addPlayer (name, id) {
+    this.players[id] = {
+      name,
+      id,
       played: [],
       goals: 0
     };
@@ -71,74 +66,46 @@ class Tournament {
     const rounds = this.rounds;
     for (let i = this.nextGame[0]; i < rounds.length; i++) {
       for(let j = this.nextGame[1]; j < rounds[i].length; j++) {
-        if (rounds[i][j].player1.name === username) return rounds[i][j].player2;
-        else if (rounds[i][j].player2.name === username) return rounds[i][j].player1;
+        if (rounds[i][j].player1.name === username) return rounds[i][j].player2.name;
+        else if (rounds[i][j].player2.name === username) return rounds[i][j].player1.name;
       };
     };
   };
 
-  findNextGame () {
-    let game = this.rounds[this.nextGame[0]][this.nextGame[1]];
-    while (game.player1 === 0 || game.player2 === 0) {
-      if (game.player1 === 0) this.placeInNextGame(game.player2)
-      else if (game.player2 === 0) this.placeInNextGame(game.player1)
-      if (this.nextGame[1] < this.rounds[this.nextGame[0]].length) {
-         this.nextGame[1] = this.nextGame[1] + 1;
-         game = this.rounds[this.nextGame[0]][this.nextGame[1]];
-      } else {
-        this.nextGame = [this.nextGame[0] + 1, 0];
-        game = this.rounds[this.nextGame[0]][this.nextGame[1]];
-      }
-    };
-    return game
-  };
 
-  gamePlayed (result) {
-    const game = this.rounds[this.nextGame[0]][this.nextGame[1]];
+  gamePlayed (result, nextGame) {
+    const game = nextGame;
     game.result = formatResult(result);
+
     game.winner = game.result[0] > game.result[1] ? game.player1 : game.player2;
     game.loser = game.result[0] < game.result[1] ? game.player1 : game.player2;
 
-    delete this.playingPlayers[game.loser];
+    const playerIndex = this.playingPlayers.indexOf(game.loser);
+    this.playingPlayers.splice(playerIndex, 1);
 
-    this.players[game.winner.name].played.push(game);
-    this.players[game.loser.name].played.push(game);
-    this.players[game.winner.name].goals += Math.max.apply(null, game.result);
-    this.players[game.loser.name].goals += Math.min.apply(null, game.result);
+    this.players[game.winner].played.push(game);
+    this.players[game.loser].played.push(game);
+    this.players[game.winner].goals += Math.max.apply(null, game.result);
+    this.players[game.loser].goals += Math.min.apply(null, game.result);
 
     this.placeInNextGame(game.winner);
-
-    if (this.nextGame[1] < this.rounds[this.nextGame[0]].length) {
-      this.nextGame[1] = this.nextGame[1] + 1;
-    } else this.nextGame = [this.nextGame[0] + 1, 0];
-
-    for (let i = this.nextGame[0]; i < this.rounds.length; i++) {
-      for (let j = this.nextGame[1]; j < this.rounds[i].length; j++) {
-        const game = this.rounds[i][j];
-        if (game.player1 === 0) this.placeInNextGame(game.player2);
-        else if (game.player2 === 0) this.placeInNextGame(game.player1);
-        else this.nextGame = [i, j];
-      };
-    };
-
-    if (this.round === 'Final') {
-      this.round = 'finished';
-      this.rounds.push(game.winner);
-    } else this.round = this.chooseRound();
-
+    game.playing = false;
   };
 
-  chooseRound () {
-    switch (this.nextGame[0]) {
-      case this.finals.quarterFinals:
-        return 'Quarter-finals';
-      case this.finals.semiFinals:
-        return 'Semi-finals';
-      case this.finals.final:
-        return 'Final';
-      default:
-        return 'Preliminary Round';
-    };
+  placeInNextGame (winner) {
+    function recurseOnMatch (match) {
+      if (match.leftChild.winner === winner && match.leftChild.playing) {
+        if (match.player1 && !match.player2) match.player2 = winner;
+        else match.player1 = winner;
+      }
+      if (match.rightChild.winner === winner && match.rightChild.playing) {
+        if (match.player1 && !match.player2) match.player2 = winner;
+        else match.player1 = winner;
+      } else {
+        recurseOnMatch(match.rightChild);
+        recurseOnMatch(match.leftChild);
+      }
+    }
   };
 
   getStats (username) {
@@ -179,36 +146,12 @@ class Tournament {
     return ranking.sort((a, b) => b.goals - a.goals)
   };
 
-  updateWildcards () {
-    const wildcards = [];
-    const currRound = this.rounds[this.nextGame[0]];
-    currRound.forEach(game => {
-      if (game.player1 === 0 && game.player2) wildcards.push(game.player2);
-      else if (game.player2 === 0 && game.player1) wildcards.push(game.player1);
-    });
-     this.wildcards = wildcards;
-  };
 
-  placeInNextGame (player) {
-    for (let i = this.nextGame[0]; i < this.rounds.length; i++) {
-      for(let j = this.nextGame[1]; j < this.rounds[i].length; j++) {
-        if (this.rounds[i][j].player1 === null) this.rounds[i][j].player1 = player;
-        else if (this.rounds[i][j].player2 === null) this.rounds[i][j].player2 = player;
-      };
-    };
-  };
 
 };
 
 const findNextPowerOfTwo = num => {
   return Math.pow(2, Math.ceil(Math.log2(num)));
-};
-
-const shuffle = (a) => {
-  for (let i = a.length; i; i--) {
-    const j = Math.floor(Math.random() * i);
-    [a[i - 1], a[j]] = [a[j], a[i - 1]];
-  };
 };
 
 const formatResult = (res) => res.replace(/\s/g, '').split('-').map(el => +el);
