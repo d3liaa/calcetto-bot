@@ -101,12 +101,10 @@ describe('Tournament Bot', function ()  {
         const chatId = admin.chat.id;
         tournament = bot.chatsOpen[chatId];
 
-        bot.start(admin)
         bot.register(admin)
         bot.go(admin)
         const playingPlayers = tournament.playingPlayers.length;
         const players = Object.keys(tournament.players).length;
-
         tournament.registering.should.be.false;
         tournament.playing.should.be.true;
 
@@ -147,7 +145,6 @@ describe('Tournament Bot', function ()  {
       bot.game(msgFromAdmin);
       bot.result(msgFromAdmin, correctMatch);
 
-
       const actualResult = currGame.result.join('-');
       const actualWinner = currGame.winner;
       const actualLoser = currGame.loser;
@@ -184,6 +181,28 @@ describe('Tournament Bot', function ()  {
     });
   });
 
+  describe('user statistics' , function () {
+
+    it('should send user statistics for each user', function () {
+      let tournament;
+      mocks.forEach((chat) => {
+        tournament = bot.chatsOpen[chat.chatId];
+        chat.users.forEach(msg => {
+          bot.stats(msg)
+          const stats = tournament.getStats(msg.from.id);
+          stats.should.have.property('highest');
+          stats.highest.should.be.at.least(0);
+          stats.should.have.property('lowest');
+          stats.lowest.should.be.at.least(0);
+          stats.should.have.property('playersRank');
+          stats.playersRank.should.to.be.within(0, tournament.playingPlayers.length + 1);
+          stats.should.have.property('avgScore');
+          stats.avgScore.should.be.at.least(0);
+        });
+      });
+    });
+  });
+
   describe('deleteTournament', function () {
     const msgFromAdmin = chatAdmins[0];
     const chatId = msgFromAdmin.chat.id;
@@ -206,4 +225,5 @@ describe('Tournament Bot', function ()  {
       should.equal(bot.chatsOpen[chatId], undefined)
     });
   });
+
 });
