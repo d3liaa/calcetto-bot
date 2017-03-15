@@ -76,7 +76,7 @@ describe('Tournament Bot', function ()  {
       });
     });
   });
-  //
+
   describe('register', function () {
     it('should add a player to the tournament', function () {
       let tournament;
@@ -101,7 +101,7 @@ describe('Tournament Bot', function ()  {
         const chatId = admin.chat.id;
         tournament = bot.chatsOpen[chatId];
 
-        // bot.start(admin)
+        bot.start(admin)
         bot.register(admin)
         bot.go(admin)
         const playingPlayers = tournament.playingPlayers.length;
