@@ -101,7 +101,8 @@ describe('Tournament Bot', function ()  {
         const chatId = admin.chat.id;
         tournament = bot.chatsOpen[chatId];
 
-        bot.register(admin)
+        bot.register(admin);
+        bot.go(admin);
         const playingPlayers = tournament.playingPlayers.length;
         const players = Object.keys(tournament.players).length;
         tournament.registering.should.be.false;
@@ -109,6 +110,7 @@ describe('Tournament Bot', function ()  {
 
         playingPlayers.should.eql(players);
       });
+      done();
     });
   });
 
