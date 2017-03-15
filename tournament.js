@@ -1,6 +1,7 @@
 'use strict';
 
-const Match = require('./match.js');
+const createPNG = require('./d3');
+const Match = require('./match');
 
 class Tournament {
 
@@ -16,7 +17,7 @@ class Tournament {
     this.round;
   };
 
-  createTournament () {
+  createTournament (callback) {
     const numberOfPlayers = Object.keys(this.players).length;
     const startingNumber = findNextPowerOfTwo(numberOfPlayers);
     const numberOfZeros = startingNumber - numberOfPlayers;
@@ -48,9 +49,10 @@ class Tournament {
     };
 
     this.root = matches.shift();
-
     this.root.sanitise();
-
+    createPNG(this.root, this.players, (data) => {
+      callback(data)
+    });
   };
 
   addPlayer (name, id) {
@@ -62,7 +64,7 @@ class Tournament {
     };
   };
 
-  gamePlayed (result, nextGame) {
+  gamePlayed (result, nextGame, callback) {
     const game = nextGame;
     game.result = formatResult(result);
 
@@ -79,6 +81,9 @@ class Tournament {
 
     this.placeInNextGame(game.winner);
     game.playing = false;
+    createPNG(this.root, this.players, (data) => {
+      callback(data)
+    });
   };
 
   placeInNextGame (winner) {
@@ -95,6 +100,7 @@ class Tournament {
         recurseOnMatch(match.leftChild);
       }
     }
+    recurseOnMatch(this.root);
   };
 
   getStats (id) {

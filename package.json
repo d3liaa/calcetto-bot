@@ -10,9 +10,12 @@
     "fs": "0.0.1-security",
     "jsdom": "^9.12.0",
     "nconf": "^0.8.4",
+    "node-phantom": "^0.2.5",
     "node-telegram-bot-api": "^0.24.0",
     "nodemon": "^1.5.0",
-    "svg2png": "^4.1.1"
+    "phantomjs": "^2.1.7",
+    "svg2png": "^4.1.1",
+    "webshot": "^0.18.0"
   },
   "devDependencies": {
     "coveralls": "^2.12.0",
