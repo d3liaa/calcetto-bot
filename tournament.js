@@ -1,6 +1,6 @@
 'use strict';
 
-const renderJSON = require('./d3/renderJSON');
+const createPNG = require('./d3');
 const Match = require('./match');
 
 class Tournament {
@@ -17,7 +17,7 @@ class Tournament {
     this.round;
   };
 
-  createTournament () {
+  createTournament (callback) {
     const numberOfPlayers = Object.keys(this.players).length;
     const startingNumber = findNextPowerOfTwo(numberOfPlayers);
     const numberOfZeros = startingNumber - numberOfPlayers;
@@ -50,7 +50,9 @@ class Tournament {
 
     this.root = matches.shift();
     this.root.sanitise();
-    renderJSON(this.root);
+    createPNG(this.root, this.players, (data) => {
+      callback(data)
+    });
   };
 
   addPlayer (name, id) {
@@ -90,6 +92,7 @@ class Tournament {
 
     this.placeInNextGame(game.winner);
     game.playing = false;
+    return createPNG(this.root, this.players);
   };
 
   placeInNextGame (winner) {

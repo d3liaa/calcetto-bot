@@ -51,7 +51,7 @@ class TournamentBot {
       } else this.telegram.sendMessage(chatId, messages.alreadyRegistered);
     } else {
       this.telegram.sendMessage(chatId, messages.registrationClosed);
-      }
+    }
   };
 
   go (msg) {
@@ -67,8 +67,10 @@ class TournamentBot {
           if (playerCount >= 2) {
             tournament.registering = false;
             tournament.playing = true;
-            tournament.createTournament();
             this.telegram.sendMessage(chatId, messages.newTournament(playerCount));
+            tournament.createTournament((png) => {
+              this.telegram.sendPhoto(chatId, png);
+            });
           } else this.telegram.sendMessage(chatId, messages.notEnoughPlayers(playerCount));
         } else this.telegram.sendMessage(chatId, messages.alreadyPlaying);
       } else this.telegram.sendMessage(chatId, messages.notAdmin(chatAdmin.name));

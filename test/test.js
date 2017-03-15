@@ -95,7 +95,7 @@ describe('Tournament Methods', function ()  {
 
   describe('go', function () {
 
-    it('should start a tournament with 4 players or more', function () {
+    it('should start a tournament with 4 players or more', function (done) {
       let tournament;
       chatAdmins.forEach((admin) => {
         const chatId = admin.chat.id;
@@ -103,7 +103,6 @@ describe('Tournament Methods', function ()  {
 
         // bot.start(admin)
         bot.register(admin)
-        bot.go(admin)
         const playingPlayers = tournament.playingPlayers.length;
         const players = Object.keys(tournament.players).length;
 
