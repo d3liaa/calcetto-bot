@@ -21,10 +21,14 @@ class Match {
 
   findNextGame () {
     let next;
-    function recurseOnMatch (match) {
-      if (match.player1 && match.player2) next = match;
-      if (!match.player1 && match.leftChild) recurseOnMatch(match.leftChild);
-      if (!match.player2 && match.rightChild) recurseOnMatch(match.rightChild);
+    let nextDepth = -1;
+    function recurseOnMatch (match, depth = 0) {
+      if (match.player1 && match.player2 && depth > nextDepth) {
+        next = match;
+        nextDepth = depth;
+      }
+      if (!match.player1 && match.leftChild) recurseOnMatch(match.leftChild, depth + 1);
+      if (!match.player2 && match.rightChild) recurseOnMatch(match.rightChild, depth + 1);
     }
     recurseOnMatch(this);
     return next;
