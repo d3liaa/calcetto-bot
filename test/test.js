@@ -31,7 +31,7 @@ mocks.forEach(chat => {
   });
 });
 
-describe('Tournament Methods', function ()  {
+describe('Tournament Bot', function ()  {
   let getChatAdministrators;
   let sendMessage;
   const chatAdmins = mocks.map(chat => chat.users[0]);
@@ -76,7 +76,7 @@ describe('Tournament Methods', function ()  {
       });
     });
   });
-  //
+
   describe('register', function () {
     it('should add a player to the tournament', function () {
       let tournament;
@@ -101,35 +101,15 @@ describe('Tournament Methods', function ()  {
         const chatId = admin.chat.id;
         tournament = bot.chatsOpen[chatId];
 
-        // bot.start(admin)
         bot.register(admin)
         const playingPlayers = tournament.playingPlayers.length;
         const players = Object.keys(tournament.players).length;
-
         tournament.registering.should.be.false;
         tournament.playing.should.be.true;
 
         playingPlayers.should.eql(players);
       });
     });
-
-    // it('should create the current tournament structure', function () {
-    //   chatAdmins.forEach(admin => {
-    //     const chatId = admin.chat.id;
-    //     const tournament = bot.chatsOpen[chatId];
-    //     const rounds = tournament.rounds;
-    //     const numOfRounds = rounds.length;
-    //     const playerCount = Object.keys(tournament.players).length;
-    //
-    //     rounds.forEach((round, i) => {
-    //       const actualGamesInRound = round.length;
-    //       const expectedGamesInRound = Math.pow(2, numOfRounds -  1 - i);
-    //
-    //       expectedGamesInRound.should.eql(actualGamesInRound);
-    //     });
-    //   });
-    // });
-    //
   });
 
   describe('play a game and input results', function () {
@@ -138,46 +118,49 @@ describe('Tournament Methods', function ()  {
     const correctMatch = [ '/result 1-2', '1-2', 'index: 0', 'input: /result 1-2' ];
     it('should update the current game with the scores and winner', function () {
 
-      // const expectedResult = correctMatch[1];
-      // const exResultArr = expectedResult.split('-').map(el => +el);
-      // const winningScore = Math.max.apply(null, exResultArr);
-      // const losingScore = Math.min.apply(null, exResultArr);
-      //
+      const expectedResult = correctMatch[1];
+      const exResultArr = expectedResult.split('-').map(el => +el);
+      const winningScore = Math.max.apply(null, exResultArr);
+      const losingScore = Math.min.apply(null, exResultArr);
+
       const msgFromAdmin = chatAdmins[0];
       const username = msgFromAdmin.from.username;
       const chatId = msgFromAdmin.chat.id;
       const tournament = bot.chatsOpen[chatId];
 
-      // const currGame = tournament.rounds[tournament.nextGame[0]][tournament.nextGame[1]];
-      //
-      // const expectedWinner = exResultArr[0] > exResultArr[1] ? currGame.player1 : currGame.player2;
-      // const expectedLoser = exResultArr[0] < exResultArr[1] ? currGame.player1 : currGame.player2;
-      // const prev_player1_goals = currGame.player1.goals;
-      // const prev_player2_goals = currGame.player2.goals;
-      // bot.go(msgFromAdmin);
-      // bot.result(msgFromAdmin, correctMatch);
+      const currGame = tournament.root.findNextGame();
 
-      // should.equal(currGame.result, undefined)
+      const expectedWinner = exResultArr[0] > exResultArr[1] ? currGame.player1 : currGame.player2;
+      const expectedLoser = exResultArr[0] < exResultArr[1] ? currGame.player1 : currGame.player2;
 
+      const player1 = tournament.players[currGame.player1];
+      const player2 = tournament.players[currGame.player2];
+      const prev_player1_goals = player1.goals;
+      const prev_player2_goals = player2.goals;
+
+      bot.go(msgFromAdmin);
+      bot.result(msgFromAdmin, correctMatch);
+      should.equal(currGame.result, undefined)
       bot.game(msgFromAdmin);
-      // bot.result(msgFromAdmin, correctMatch);
-      // const actualResult = currGame.result.join('-');
-      // const actualWinner = currGame.winner;
-      // const actualLoser = currGame.loser;
-      //
-      // const new_player1_goals = expectedWinner === currGame.player1 ?
-      // winningScore + prev_player1_goals :
-      // losingScore + prev_player1_goals
-      // const new_player2_goals = expectedWinner === currGame.player2 ?
-      // winningScore + prev_player2_goals :
-      // losingScore + prev_player2_goals
-      //
-      // should.not.equal(currGame.result, undefined)
-      // actualResult.should.be.eql(expectedResult);
-      // actualWinner.should.be.eql(expectedWinner);
-      // actualLoser.should.be.eql(expectedLoser);
-      // currGame.player1.goals.should.be.eql(new_player1_goals);
-      // currGame.player2.goals.should.be.eql(new_player2_goals);
+      bot.result(msgFromAdmin, correctMatch);
+
+      const actualResult = currGame.result.join('-');
+      const actualWinner = currGame.winner;
+      const actualLoser = currGame.loser;
+
+      const new_player1_goals = expectedWinner === currGame.player1 ?
+      winningScore + prev_player1_goals :
+      losingScore + prev_player1_goals
+      const new_player2_goals = expectedWinner === currGame.player2 ?
+      winningScore + prev_player2_goals :
+      losingScore + prev_player2_goals
+
+      should.not.equal(currGame.result, undefined)
+      actualResult.should.be.eql(expectedResult);
+      actualWinner.should.be.eql(expectedWinner);
+      actualLoser.should.be.eql(expectedLoser);
+      player1.goals.should.be.eql(new_player1_goals);
+      player2.goals.should.be.eql(new_player2_goals);
     });
 
     it('should only accept numbers as valid results', function () {
@@ -187,7 +170,7 @@ describe('Tournament Methods', function ()  {
       const username = msgFromAdmin.from.username;
       const chatId = msgFromAdmin.chat.id;
       const tournament = bot.chatsOpen[chatId];
-      const currGame = tournament.rounds[tournament.nextGame[0]][tournament.nextGame[1]];
+      const currGame = tournament.root.findNextGame()
       bot.go(msgFromAdmin);
       bot.game(msgFromAdmin);
       bot.result(msgFromAdmin, incorrectMatch);
@@ -195,147 +178,51 @@ describe('Tournament Methods', function ()  {
       should.equal(currGame.result, undefined);
 
     });
+  });
 
-    it('should update the nextGame' , function () {
-      const match = [ '/result 1-2', '1-2', 'index: 0', 'input: /result 1-2' ];
-      chatAdmins.forEach((admin) => {
-        const chatId = admin.chat.id;
-        const tournament = bot.chatsOpen[chatId];
-        const prev_nextGame = [tournament.nextGame[0], tournament.nextGame[1]];
-        bot.go(admin);
-        bot.game(admin);
-        bot.result(admin, match);
-        prev_nextGame.should.not.eql(tournament.nextGame)
+  describe('user statistics' , function () {
+
+    it('should send user statistics for each user', function () {
+      let tournament;
+      mocks.forEach((chat) => {
+        tournament = bot.chatsOpen[chat.chatId];
+        chat.users.forEach(msg => {
+          bot.stats(msg)
+          const stats = tournament.getStats(msg.from.id);
+          stats.should.have.property('highest');
+          stats.highest.should.be.at.least(0);
+          stats.should.have.property('lowest');
+          stats.lowest.should.be.at.least(0);
+          stats.should.have.property('playersRank');
+          stats.playersRank.should.to.be.within(0, tournament.playingPlayers.length + 1);
+          stats.should.have.property('avgScore');
+          stats.avgScore.should.be.at.least(0);
+        });
       });
     });
   });
-  //
-  // describe('deleteTournament', function () {
-  //   const msgFromAdmin = chatAdmins[0];
-  //   const chatId = msgFromAdmin.chat.id;
-  //
-  //   it('should not delete a tournament if the user selects no', function () {
-  //     const tournament = bot.chatsOpen[chatId];
-  //
-  //     bot.deleteTournament(msgFromAdmin);
-  //     should.not.equal(bot.chatsOpen[chatId], undefined);
-  //     bot.cancelDeletion(msgFromAdmin);
-  //     should.not.equal(bot.chatsOpen[chatId], undefined);
-  //   });
-  //
-  //   it('should successfully delete a tournament if the user selectects yes', function () {
-  //     const tournament = bot.chatsOpen[chatId];
-  //
-  //     bot.deleteTournament(msgFromAdmin);
-  //     should.not.equal(bot.chatsOpen[chatId], undefined);
-  //     bot.confirmDeletion(msgFromAdmin);
-  //     should.equal(bot.chatsOpen[chatId], undefined)
-  //   });
-  // });
-  // describe('play a game and input results', function () {
-  //
-  //   const chatAdmins = mocks.map(chat => chat.users[0]);
-  //   const correctMatch = [ '/result 1-2', '1-2', 'index: 0', 'input: /result 1-2' ];
-  //   it('should update the current game with the scores and winner', function () {
-  //
-  //     const expectedResult = correctMatch[1];
-  //     const exResultArr = expectedResult.split('-').map(el => +el);
-  //     const winningScore = Math.max.apply(null, exResultArr);
-  //     const losingScore = Math.min.apply(null, exResultArr);
-  //
-  //     const msgFromAdmin = chatAdmins[1];
-  //     const username = msgFromAdmin.from.username;
-  //     const chatId = msgFromAdmin.chat.id;
-  //     const tournament = bot.chatsOpen[chatId];
-  //
-  //     const currGame = tournament.rounds[tournament.nextGame[0]][tournament.nextGame[1]];
-  //
-  //     const expectedWinner = exResultArr[0] > exResultArr[1] ? currGame.player1 : currGame.player2;
-  //     const expectedLoser = exResultArr[0] < exResultArr[1] ? currGame.player1 : currGame.player2;
-  //     const prev_player1_goals = currGame.player1.goals;
-  //     const prev_player2_goals = currGame.player2.goals;
-  //     bot.go(msgFromAdmin);
-  //     bot.result(msgFromAdmin, correctMatch);
-  //
-  //     should.equal(currGame.result, undefined)
-  //
-  //     bot.game(msgFromAdmin);
-  //     bot.result(msgFromAdmin, correctMatch);
-  //     bot.game(msgFromAdmin);
-  //     bot.result(msgFromAdmin, correctMatch);
-  //     bot.game(msgFromAdmin);
-  //     bot.result(msgFromAdmin, correctMatch);
-  //     if (currGame.playing) {
-  //       const actualResult = currGame.result.join('-');
-  //       const actualWinner = currGame.winner;
-  //       const actualLoser = currGame.loser;
-  //
-  //       const new_player1_goals = expectedWinner === currGame.player1 ?
-  //       winningScore + prev_player1_goals :
-  //       losingScore + prev_player1_goals
-  //       const new_player2_goals = expectedWinner === currGame.player2 ?
-  //       winningScore + prev_player2_goals :
-  //       losingScore + prev_player2_goals
-  //
-  //       should.not.equal(currGame.result, undefined)
-  //       actualResult.should.be.eql(expectedResult);
-  //       actualWinner.should.be.eql(expectedWinner);
-  //       actualLoser.should.be.eql(expectedLoser);
-  //       currGame.player1.goals.should.be.eql(new_player1_goals);
-  //       currGame.player2.goals.should.be.eql(new_player2_goals);
-  //     }
-  //   });
-  //
-  //   it('should only accept numbers as valid results', function () {
-  //     const incorrectMatch = [ '/result hello-world', 'hello-world', 'index: 0', 'input: /result hello-world' ];
-  //     const expectedResult = incorrectMatch[1];
-  //     const msgFromAdmin = chatAdmins[1];
-  //     const username = msgFromAdmin.from.username;
-  //     const chatId = msgFromAdmin.chat.id;
-  //     const tournament = bot.chatsOpen[chatId];
-  //     const currGame = tournament.rounds[tournament.nextGame[0]][tournament.nextGame[1]];
-  //     bot.go(msgFromAdmin);
-  //     bot.game(msgFromAdmin);
-  //     bot.result(msgFromAdmin, incorrectMatch);
-  //
-  //     should.equal(currGame.result, undefined);
-  //
-  //   });
-  //
-  //   it('should update the nextGame' , function () {
-  //     const match = [ '/result 1-2', '1-2', 'index: 0', 'input: /result 1-2' ];
-  //     chatAdmins.forEach((admin) => {
-  //       const chatId = admin.chat.id;
-  //       const tournament = bot.chatsOpen[chatId];
-  //       const prev_nextGame = [tournament.nextGame[0], tournament.nextGame[1]];
-  //       bot.go(admin);
-  //       bot.game(admin);
-  //       bot.result(admin, match);
-  //       prev_nextGame.should.not.eql(tournament.nextGame)
-  //     });
-  //   });
-  // });
-  //
-  // describe('deleteTournament', function () {
-  //   const msgFromAdmin = chatAdmins[0];
-  //   const chatId = msgFromAdmin.chat.id;
-  //
-  //   it('should not delete a tournament if the user selects no', function () {
-  //     const tournament = bot.chatsOpen[chatId];
-  //
-  //     bot.deleteTournament(msgFromAdmin);
-  //     should.not.equal(bot.chatsOpen[chatId], undefined);
-  //     bot.cancelDeletion(msgFromAdmin);
-  //     should.not.equal(bot.chatsOpen[chatId], undefined);
-  //   });
-  //
-  //   it('should successfully delete a tournament if the user selectects yes', function () {
-  //     const tournament = bot.chatsOpen[chatId];
-  //
-  //     bot.deleteTournament(msgFromAdmin);
-  //     should.not.equal(bot.chatsOpen[chatId], undefined);
-  //     bot.confirmDeletion(msgFromAdmin);
-  //     should.equal(bot.chatsOpen[chatId], undefined)
-  //   });
-  // });
+
+  describe('deleteTournament', function () {
+    const msgFromAdmin = chatAdmins[0];
+    const chatId = msgFromAdmin.chat.id;
+
+    it('should not delete a tournament if the user selects no', function () {
+      const tournament = bot.chatsOpen[chatId];
+
+      bot.deleteTournament(msgFromAdmin);
+      should.not.equal(bot.chatsOpen[chatId], undefined);
+      bot.cancelDeletion(msgFromAdmin);
+      should.not.equal(bot.chatsOpen[chatId], undefined);
+    });
+
+    it('should successfully delete a tournament if the user selectects yes', function () {
+      const tournament = bot.chatsOpen[chatId];
+
+      bot.deleteTournament(msgFromAdmin);
+      should.not.equal(bot.chatsOpen[chatId], undefined);
+      bot.confirmDeletion(msgFromAdmin);
+      should.equal(bot.chatsOpen[chatId], undefined)
+    });
+  });
+
 });

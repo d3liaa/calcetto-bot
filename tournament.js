@@ -64,17 +64,6 @@ class Tournament {
     };
   };
 
-  findNextOpponent (username) {
-    const rounds = this.rounds;
-    for (let i = this.nextGame[0]; i < rounds.length; i++) {
-      for(let j = this.nextGame[1]; j < rounds[i].length; j++) {
-        if (rounds[i][j].player1.name === username) return rounds[i][j].player2.name;
-        else if (rounds[i][j].player2.name === username) return rounds[i][j].player1.name;
-      };
-    };
-  };
-
-
   gamePlayed (result, nextGame) {
     const game = nextGame;
     game.result = formatResult(result);
@@ -111,16 +100,15 @@ class Tournament {
     }
   };
 
-  getStats (username) {
-    const player = this.players[username];
-    const avgScore = player.goals / player.played.length;
-
+  getStats (id) {
+    const player = this.players[id];
+    const avgScore = Math.round(player.goals / player.played.length || 0);
     let highest = 0;
     let lowest = 0;
     player.played.forEach(game => {
       const max = Math.max.apply(null, game.result);
       const min = Math.min.apply(null, game.result);
-      if (game.winner === username ) {
+      if (game.winner === id ) {
         if (max > highest) highest = max;
         if (max < lowest) lowest = max;
       }
@@ -129,28 +117,32 @@ class Tournament {
     });
 
     const ranking = this.getRanking();
+
     let playersRank;
     for (let i = 0; i < ranking.length; i++) {
-      if (ranking[i].name === username) playersRank = i + 1;
+      if (ranking[i].name === player.name) playersRank = i + 1;
     };
+    return({
+      highest,
+      lowest,
+      avgScore,
+      playersRank,
+    });
   };
 
   getRanking () {
     const players = this.players;
     const ranking = [];
-    for (let player in players) {
-      if (players.hasOwnProperty(player)) {
+    for (let id in players) {
+      if (players.hasOwnProperty(id)) {
         ranking.push({
-          name: player,
-          goals : players[player].goals
+          name: players[id].name,
+          goals : players[id].goals
         });
       }
     };
     return ranking.sort((a, b) => b.goals - a.goals)
   };
-
-
-
 };
 
 const findNextPowerOfTwo = num => {

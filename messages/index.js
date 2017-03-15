@@ -35,6 +35,7 @@ You can control me by sending these commands:
 /game - start the next game
 /deletetournament - delete an existing tournament
 /help - list of commands and help
+/mystats - get personal stats
     `,
 
   alreadyPlaying: `You are already set up a tournament, send /go to start or /help to see more options.`,
@@ -63,28 +64,6 @@ You can control me by sending these commands:
     return `You need ${4 - playerCount} more players to start a tournament`
   },
 
-  wildcard: (round, wildcards) => {
-    if(wildcards.length === 0) return '';
-    if(wildcards.length === 1) {
-      return `
-${round}
-${wildcards[0].name} is lucky and gets a free pass for this round.
-`
-    } else {
-      const wildcardNames = wildcards.map(wildcard => wildcard.name);
-      const wildcardString = wildcardNames.join(`\r\n`);
-      return `
-${round}
-The following players will get a free pass for this round:
-${wildcardString}
-      `
-    }
-  },
-
-  opponent: (username, opponent) => {
-    return `${username} your opponent is ${opponent}`
-  },
-
   undecidedOpponent: `Your opponent has not been decided yet`,
 
   knockedOut: `You have already been knocked out!`,
@@ -99,6 +78,15 @@ Send /result ${player1}-${player2} to declare the winner.`
 
   resultFormat: `Please send your /result in the correct format e.g 5-4`,
 
+  stats: (user, stats) => {
+    return `
+*Your stats!*
+⚽️ Average score : *${stats.avgScore}*
+⛹🏼 Highest score in a single match : *${stats.highest}*
+🤼‍ Lowest score in a single match: *${stats.avgScore}*
+🥇 Current rank: *${stats.playersRank}*
+    `
+  },
   overallWinner: (winner) => {
      return `Congratulations! ${winner} won the tournament.`
   },
