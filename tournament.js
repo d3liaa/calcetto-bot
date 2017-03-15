@@ -1,136 +1,159 @@
 'use strict';
 
-const tm = {};
+const Match = require('./match.js');
 
-var Match = tm.Match = function () {
- this.round = undefined;
- this.player1 = undefined;
- this.player2 = undefined;
- this.score = undefined;
- this.played = false;
- this.childrenLeft = undefined;
- this.childrenRight = undefined;
-}
+class Tournament {
 
-Match.prototype.addPlayers = function (where, players) {
-  if (where === 'right') {
-    this.childrenRight = new Match();
-    this.childrenRight.player1 = players.shift();
-    this.childrenRight.player2 = players.shift();
-  } 
-  if (where === 'left') {
-    this.childrenLeft = new Match();
-    this.childrenLeft.player1 = players.shift();
-    this.childrenLeft.player2 = players.shift();
-  } 
-  else return false;
-}
+  constructor (chatId, chatAdmin) {
+    this.chatId = chatId;
+    this.chatAdmin = chatAdmin;
+    this.players = {};
+    this.playingPlayers = [];
+    this.registering = true;
+    this.playing = false;
+    this.root;
+    this.finals = {};
+    this.round;
+  };
 
-tm.createTournament = function (players) {
-  let final = new Match();
-  final.round = 'final';
-  let queue = [final];
-  let empty = players.length - 2;
-  let counter = 2;
-  let match;
+  createTournament () {
+    const numberOfPlayers = Object.keys(this.players).length;
+    const startingNumber = findNextPowerOfTwo(numberOfPlayers);
+    const numberOfZeros = startingNumber - numberOfPlayers;
+    const playersArr = Object.keys(this.players);
+    const matches = [];
+    this.playingPlayers = Object.keys(this.players);
 
-  while (queue.length > 0 && counter < empty) {
-    match = queue.shift();
-    counter += 2;
-    match.childrenLeft = new Match ();
-    queue.push(match.childrenLeft);
-    if (counter < empty) {
-      match.childrenRight = new Match ();
-      queue.push(match.childrenRight);
-      counter += 2;
+    for (let i = 0; i < numberOfZeros; i++) {
+      playersArr.splice(i, 0, 0)
     }
-    if ((players.length) % 2 === 0 && counter === empty && match.childrenRight === undefined) {
-      match.addPlayers('right', players);
-      counter += 2;
+
+    for (let i = 0; i < startingNumber; i+=2) {
+      const match = new Match();
+      match.player1 = playersArr[i]
+      match.player2 = playersArr[i+1]
+      matches.push(match);
+    };
+
+    let remainingMatches = startingNumber / 2;
+
+    while (remainingMatches > 1) {
+      remainingMatches /= 2;
+      for (let i = 0; i < remainingMatches; i++) {
+        const match = new Match();
+        match.leftChild = matches.shift();
+        match.rightChild = matches.shift();
+        matches.push(match);
+      };
+    };
+
+    this.root = matches.shift();
+
+    this.root.sanitise();
+
+  };
+
+  addPlayer (name, id) {
+    this.players[id] = {
+      name,
+      id,
+      played: [],
+      goals: 0
+    };
+  };
+
+  findNextOpponent (username) {
+    const rounds = this.rounds;
+    for (let i = this.nextGame[0]; i < rounds.length; i++) {
+      for(let j = this.nextGame[1]; j < rounds[i].length; j++) {
+        if (rounds[i][j].player1.name === username) return rounds[i][j].player2.name;
+        else if (rounds[i][j].player2.name === username) return rounds[i][j].player1.name;
+      };
+    };
+  };
+
+
+  gamePlayed (result, nextGame) {
+    const game = nextGame;
+    game.result = formatResult(result);
+
+    game.winner = game.result[0] > game.result[1] ? game.player1 : game.player2;
+    game.loser = game.result[0] < game.result[1] ? game.player1 : game.player2;
+
+    const playerIndex = this.playingPlayers.indexOf(game.loser);
+    this.playingPlayers.splice(playerIndex, 1);
+
+    this.players[game.winner].played.push(game);
+    this.players[game.loser].played.push(game);
+    this.players[game.winner].goals += Math.max.apply(null, game.result);
+    this.players[game.loser].goals += Math.min.apply(null, game.result);
+
+    this.placeInNextGame(game.winner);
+    game.playing = false;
+  };
+
+  placeInNextGame (winner) {
+    function recurseOnMatch (match) {
+      if (match.leftChild.winner === winner && match.leftChild.playing) {
+        if (match.player1 && !match.player2) match.player2 = winner;
+        else match.player1 = winner;
+      }
+      if (match.rightChild.winner === winner && match.rightChild.playing) {
+        if (match.player1 && !match.player2) match.player2 = winner;
+        else match.player1 = winner;
+      } else {
+        recurseOnMatch(match.rightChild);
+        recurseOnMatch(match.leftChild);
+      }
     }
-  }
+  };
 
-  if ((players.length) % 2 === 1){
-    if (counter > empty) { 
-      queue[queue.length-1].player2 = players.shift()
-    }
-    if (match.childrenRight === undefined) {
-      match.addPlayers('right', players);
-    }
-  }
+  getStats (username) {
+    const player = this.players[username];
+    const avgScore = player.goals / player.played.length;
 
-  while (queue.length > 0 && players.length > 0) {
-    let match = queue.shift();
-    match.addPlayers('left', players);
-    if (players.length > 0) {
-      match.addPlayers('right', players);
-    }
-  }
-  return final;
-}
+    let highest = 0;
+    let lowest = 0;
+    player.played.forEach(game => {
+      const max = Math.max.apply(null, game.result);
+      const min = Math.min.apply(null, game.result);
+      if (game.winner === username ) {
+        if (max > highest) highest = max;
+        if (max < lowest) lowest = max;
+      }
+      else if (min > highest) highest = min;
+      else if (min < lowest) lowest = min;
+    });
 
-Match.prototype.setWinner = function (num, winner) {
-  if (num === 1) {
-    this.player1 = winner;
-    this.childrenLeft.played = true;
-    return true;
-  }
-  if (num === 2) {
-    this.player2 = winner;
-    this.childrenLeft.played = true;
-    return true;
-  }
-  else return false;
-}
+    const ranking = this.getRanking();
+    let playersRank;
+    for (let i = 0; i < ranking.length; i++) {
+      if (ranking[i].name === username) playersRank = i + 1;
+    };
+  };
 
-Match.prototype.passRound = function (winner) {
-  if (this.childrenLeft === undefined) return false;
-  if (this.childrenLeft.player1 === winner) {
-    this.setWinner(1, winner);
-  } else if (this.childrenLeft.player2 === winner ) {
-    this.setWinner(1, winner);
-  }
-  if (this.childrenRight !== undefined) {
-    if (this.childrenRight.player1 === winner) {
-      this.setWinner(2, winner);
-    } else if (this.childrenRight.player2 === winner) {
-      this.setWinner(2, winner);
-    }
-  }
-  
-  let found = this.childrenLeft.passRound(winner);
-  if (!found && this.childrenRight) 
-    found = this.childrenRight.passRound(winner);
+  getRanking () {
+    const players = this.players;
+    const ranking = [];
+    for (let player in players) {
+      if (players.hasOwnProperty(player)) {
+        ranking.push({
+          name: player,
+          goals : players[player].goals
+        });
+      }
+    };
+    return ranking.sort((a, b) => b.goals - a.goals)
+  };
 
-  return found;
-}
 
-Match.prototype.nextMatch = function () {
-    let next, nextDepth = -1;
 
-    (function recurse (match, depth = 0) {
-        if (match.player1 && match.player2 && depth > nextDepth) {
-            next = match;
-            nextDepth = depth;
-        }
-        if (!match.player1 && match.childrenLeft)
-            recurse(match.childrenLeft, depth + 1);
-        if (!match.player2 && match.childrenRight) 
-            recurse(match.childrenRight, depth + 1);
-    })(this);
-    return next;
-}
+};
 
-Match.prototype.nextOpponent = function (player) {
-    if (this.player1 === player) return this.player2;
-    if (this.player2 === player) return this.player1;
-    var match;
-    if (!this.player2 && !this.player1 && this.childrenRight) 
-        match = this.childrenRight.nextOpponent(player);
-    // maybe previous return value was undefined, then try the other side:
-    if (!match && !this.player1 && !this.player2 && this.childrenLeft) 
-        match = this.childrenLeft.nextOpponent(player);
-    return match;
-}
+const findNextPowerOfTwo = num => {
+  return Math.pow(2, Math.ceil(Math.log2(num)));
+};
 
-module.exports = tm;
+const formatResult = (res) => res.replace(/\s/g, '').split('-').map(el => +el);
+
+module.exports = Tournament;
