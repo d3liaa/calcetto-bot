@@ -184,6 +184,7 @@ describe('Tournament Methods', function ()  {
     //
     // });
   });
+
   describe('deleteTournament', function () {
     const msgFromAdmin = chatAdmins[0];
     const chatId = msgFromAdmin.chat.id;
