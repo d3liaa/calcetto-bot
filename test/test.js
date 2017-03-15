@@ -126,7 +126,6 @@ describe('Tournament Bot', function ()  {
       const losingScore = Math.min.apply(null, exResultArr);
 
       const msgFromAdmin = chatAdmins[0];
-      const username = msgFromAdmin.from.username;
       const chatId = msgFromAdmin.chat.id;
       const tournament = bot.chatsOpen[chatId];
 
@@ -165,21 +164,48 @@ describe('Tournament Bot', function ()  {
       player2.goals.should.be.eql(new_player2_goals);
     });
 
-    it('should only accept numbers as valid results', function () {
-      const incorrectMatch = [ '/result hello-world', 'hello-world', 'index: 0', 'input: /result hello-world' ];
-      const expectedResult = incorrectMatch[1];
-      const msgFromAdmin = chatAdmins[1];
-      const username = msgFromAdmin.from.username;
-      const chatId = msgFromAdmin.chat.id;
-      const tournament = bot.chatsOpen[chatId];
-      const currGame = tournament.root.findNextGame()
-      bot.go(msgFromAdmin);
-      bot.game(msgFromAdmin);
-      bot.result(msgFromAdmin, incorrectMatch);
 
-      should.equal(currGame.result, undefined);
-
-    });
+    //
+    // it('should only accept numbers as valid results', function () {
+    //   const incorrectMatch = [ '/result hello-world', 'hello-world', 'index: 0', 'input: /result hello-world' ];
+    //   const expectedResult = incorrectMatch[1];
+    //   const msgFromAdmin = chatAdmins[1];
+    //   const username = msgFromAdmin.from.username;
+    //   const chatId = msgFromAdmin.chat.id;
+    //   const tournament = bot.chatsOpen[chatId];
+    //   const currGame = tournament.root.findNextGame()
+    //
+    //   bot.go(msgFromAdmin);
+    //   bot.game(msgFromAdmin);
+    //   bot.result(msgFromAdmin, incorrectMatch);
+    //
+    //   should.equal(currGame.result, undefined);
+    //
+    // });
+    //
+    // it('should add the winner of the previous match to the next game', function () {
+    //   const msgFromAdmin = chatAdmins[1];
+    //   const chatId = msgFromAdmin.chat.id;
+    //   const tournament = bot.chatsOpen[chatId];
+    //
+    //   const currGame = tournament.root.findNextGame();
+    //
+    //   bot.go(msgFromAdmin);
+    //   bot.game(msgFromAdmin);
+    //   bot.result(msgFromAdmin, correctMatch);
+    //
+    //   const nextGame = tournament.root.findNextGame();
+    //
+    //   should.not.equal(nextGame, undefined);
+    //   if (nextGame.player1) {
+    //     should.not.equal(nextGame.player2, undefined)
+    //     nextGame.player2 = currGame.winner
+    //   }
+    //   if (nextGame.player2) {
+    //     should.not.equal(nextGame.player1, undefined)
+    //     nextGame.player1 = currGame.winner
+    //   }
+    // });
   });
 
   describe('user statistics' , function () {
