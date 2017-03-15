@@ -106,7 +106,9 @@ class TournamentBot {
         const isValidResult = /\s*\d+\s*-\s*\d+\s*/.test(result);
         if (nextGame.playing) {
           if (isValidResult) {
-            tournament.gamePlayed(result, nextGame)
+            tournament.gamePlayed(result, nextGame, (png) => {
+              this.telegram.sendPhoto(chatId, png);
+            });
             const winner = tournament.players[nextGame.winner].name
             if (tournament.root === nextGame) {
               this.telegram.sendMessage(chatId, messages.overallWinner(winner));

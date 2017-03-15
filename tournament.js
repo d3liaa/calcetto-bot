@@ -64,7 +64,7 @@ class Tournament {
     };
   };
 
-  gamePlayed (result, nextGame) {
+  gamePlayed (result, nextGame, callback) {
     const game = nextGame;
     game.result = formatResult(result);
 
@@ -81,7 +81,9 @@ class Tournament {
 
     this.placeInNextGame(game.winner);
     game.playing = false;
-    return createPNG(this.root, this.players);
+    createPNG(this.root, this.players, (data) => {
+      callback(data)
+    });
   };
 
   placeInNextGame (winner) {
@@ -98,6 +100,7 @@ class Tournament {
         recurseOnMatch(match.leftChild);
       }
     }
+    recurseOnMatch(this.root);
   };
 
   getStats (id) {
