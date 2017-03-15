@@ -152,7 +152,6 @@ class TournamentBot {
     this.telegram.sendMessage(chatId, `The tournament has not been deleted.`, hideKeyboard);
   }
 
-
   help (msg) {
     const chatId = msg.chat.id;
     const resp = messages.help;
@@ -177,20 +176,18 @@ class TournamentBot {
     } else this.telegram.sendMessage(chatId, messages.notPlaying);
   }
 
-
-
   stats (msg) {
     const chatId = msg.chat.id;
     const user = msg.from;
     const tournament = this.chatsOpen[chatId];
     if (tournament) {
       if (tournament.players[user.id]) {
-        tournament.getStats(username);
-        this.telegram.sendMessage(chatId, `${username} scored ${tournament.players[username].goals} points`);
+        const name = tournament.players[user.id].name
+        const stats = tournament.getStats(user.id);
+        this.telegram.sendMessage(chatId, messages.stats(name, stats), {parse_mode: 'Markdown', reply_to_message_id: msg.msg_id});
       } else this.telegram.sendMessage(chatId, messages.userNotPlaying);
     } else this.telegram.sendMessage(chatId, messages.notPlaying);
   };
-
-};
+}
 
 module.exports = TournamentBot;
