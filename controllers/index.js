@@ -64,7 +64,7 @@ class TournamentBot {
       if (chatAdmin.id === user.id) {
         if (!tournament.playing) {
           const playerCount = Object.keys(tournament.players).length;
-          if (playerCount >= 2) {
+          if (playerCount >= 4) {
             tournament.registering = false;
             tournament.playing = true;
             this.telegram.sendMessage(chatId, messages.newTournament(playerCount));
