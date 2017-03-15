@@ -88,7 +88,6 @@ class Tournament {
 
   placeInNextGame (winner) {
     function recurseOnMatch (match) {
-      console.log(match);
       if (match.leftChild && match.leftChild.winner === winner && match.leftChild.playing) {
         if (match.player1 && !match.player2) match.player2 = winner;
         else match.player1 = winner;
