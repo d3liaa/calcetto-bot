@@ -87,15 +87,15 @@ class Tournament {
 
   placeInNextGame (winner) {
     function recurseOnMatch (match) {
-      if (match.leftChild.winner === winner && match.leftChild.playing) {
+      if (match.leftChild && match.leftChild.winner === winner && match.leftChild.playing) {
         if (match.player1 && !match.player2) match.player2 = winner;
         else match.player1 = winner;
       } else if (match.rightChild && match.rightChild.winner === winner && match.rightChild.playing) {
         if (match.player1 && !match.player2) match.player2 = winner;
         else match.player1 = winner;
       } else {
-        recurseOnMatch(match.rightChild);
-        recurseOnMatch(match.leftChild);
+        if(match.rightChild) recurseOnMatch(match.rightChild);
+        if(match.leftChild) recurseOnMatch(match.leftChild);
       }
     }
     recurseOnMatch(this.root);

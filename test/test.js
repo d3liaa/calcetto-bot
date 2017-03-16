@@ -164,8 +164,6 @@ describe('Tournament Bot', function ()  {
       player2.goals.should.be.eql(new_player2_goals);
     });
 
-
-
     it('should only accept numbers as valid results', function () {
       const incorrectMatch = [ '/result hello-world', 'hello-world', 'index: 0', 'input: /result hello-world' ];
       const expectedResult = incorrectMatch[1];
@@ -235,6 +233,7 @@ describe('Tournament Bot', function ()  {
 
       nextGame.winner.should.equal('23121936')
     });
+
   });
 
   describe('user statistics' , function () {

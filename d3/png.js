@@ -48,24 +48,8 @@ const printPNG = function (data, callback) {
 	let png;
 
 
-	// TODO: does it work without html?
 	jsdom.env({
-		html:`
-		<html>
-		<head>
-		<style type="text/css">
-		.node circle {
-			cursor: pointer;
-			fill: #fff;
-			stroke: steelblue;
-			stroke-width: 1.5px;
-		}
-		</style>
-		</head>
-		<body>
-		<div id="chart"></div>
-		</body>
-		</html>`,
+		html:'',
 		features:{ QuerySelector:true },
 		done: function(errors, window) {
 			window.d3 = d3.select(window.document);
