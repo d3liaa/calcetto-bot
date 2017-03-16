@@ -250,7 +250,7 @@ describe('Tournament Bot', function ()  {
           stats.should.have.property('lowest');
           stats.lowest.should.be.at.least(0);
           stats.should.have.property('playersRank');
-          stats.playersRank.should.to.be.within(0, tournament.playingPlayers.length + 1);
+          stats.playersRank.should.to.be.within(0, Object.keys(tournament.players).length + 1);
           stats.should.have.property('avgScore');
           stats.avgScore.should.be.at.least(0);
         });
