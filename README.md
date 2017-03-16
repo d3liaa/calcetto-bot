@@ -1,5 +1,5 @@
 ![build](https://travis-ci.org/ndillon1/tournament-bot.svg?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/ndillon1/tournament-bot/badge.svg?branch=testing)](https://coveralls.io/github/ndillon1/tournament-bot?branch=testing)
+[![Coverage Status](https://coveralls.io/repos/github/ndillon1/tournament-bot/badge.svg?branch=master)](https://coveralls.io/github/ndillon1/tournament-bot?branch=master)
 
 # Tournament Bot
 
