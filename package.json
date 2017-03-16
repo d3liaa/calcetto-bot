@@ -1,6 +1,9 @@
 {
   "name": "tournament_bot",
   "version": "1.0.0",
+  "engines": {
+    "node": "7.6.0"
+  },
   "description": "Telegram bot to create tournaments",
   "main": "main.js",
   "dependencies": {
