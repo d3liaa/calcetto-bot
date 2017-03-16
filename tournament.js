@@ -94,8 +94,8 @@ class Tournament {
         if (match.player1 && !match.player2) match.player2 = winner;
         else match.player1 = winner;
       } else {
-        if(match.rightChild) recurseOnMatch(match.rightChild);
         if(match.leftChild) recurseOnMatch(match.leftChild);
+        if(match.rightChild) recurseOnMatch(match.rightChild);
       }
     }
     recurseOnMatch(this.root);

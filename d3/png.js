@@ -5,9 +5,9 @@ const svg2png = require('svg2png');
 const printPNG = function (data, callback) {
 
 	const margin = {top: 30, right: 10, bottom: 10, left: 10};
-	const width = 960 - margin.left - margin.right;
+	const width = 600 - margin.left - margin.right;
 	const halfWidth = width / 2;
-	const height = 500 - margin.top - margin.bottom;
+	const height = 250 - margin.top - margin.bottom;
 	let i = 0;
 	const duration = 500;
 	let root = undefined;
