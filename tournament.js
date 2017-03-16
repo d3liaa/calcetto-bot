@@ -26,7 +26,7 @@ class Tournament {
     this.playingPlayers = Object.keys(this.players);
 
     for (let i = 0; i < numberOfZeros; i++) {
-      playersArr.splice(i, 0, 0)
+      playersArr.splice(i*2, 0, 0)
     }
 
     for (let i = 0; i < startingNumber; i+=2) {
@@ -67,7 +67,6 @@ class Tournament {
   gamePlayed (result, nextGame, callback) {
     const game = nextGame;
     game.result = formatResult(result);
-
     game.winner = game.result[0] > game.result[1] ? game.player1 : game.player2;
     game.loser = game.result[0] < game.result[1] ? game.player1 : game.player2;
 
@@ -91,8 +90,7 @@ class Tournament {
       if (match.leftChild.winner === winner && match.leftChild.playing) {
         if (match.player1 && !match.player2) match.player2 = winner;
         else match.player1 = winner;
-      }
-      if (match.rightChild.winner === winner && match.rightChild.playing) {
+      } else if (match.rightChild && match.rightChild.winner === winner && match.rightChild.playing) {
         if (match.player1 && !match.player2) match.player2 = winner;
         else match.player1 = winner;
       } else {

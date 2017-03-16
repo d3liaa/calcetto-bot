@@ -11,9 +11,10 @@ class Match {
     if (this.leftChild && this.leftChild.player1 === 0) {
       if (this.player1 === undefined) this.player1 = this.leftChild.player2;
       else this.player2 = this.leftChild.player2;
-    } else if (this.rightChild && this.leftChild.player2 === 0) {
-      if (this.player1 === undefined) this.player1 = this.leftChild.player1;
-      else this.player2 = this.leftChild.player1;
+    }
+    if (this.rightChild && this.rightChild.player1 === 0) {
+      if (this.player1 === undefined) this.player1 = this.rightChild.player2;
+      else this.player2 = this.rightChild.player2;
     }
     if (this.leftChild !== undefined) this.leftChild.sanitise();
     if (this.rightChild !== undefined) this.rightChild.sanitise();

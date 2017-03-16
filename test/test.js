@@ -190,21 +190,50 @@ describe('Tournament Bot', function ()  {
 
       const currGame = tournament.root.findNextGame();
 
+      currGame.player1.should.eql('23121935')
+      currGame.player2.should.eql('23121936')
+
       bot.go(msgFromAdmin);
       bot.game(msgFromAdmin);
       bot.result(msgFromAdmin, correctMatch);
 
-      const nextGame = tournament.root.findNextGame();
+      let nextGame = tournament.root.findNextGame();
 
       should.not.equal(nextGame, undefined);
-      if (nextGame.player1) {
-        should.not.equal(nextGame.player2, undefined)
-        nextGame.player2 = currGame.winner
-      }
-      if (nextGame.player2) {
-        should.not.equal(nextGame.player1, undefined)
-        nextGame.player1 = currGame.winner
-      }
+      should.not.equal(nextGame.player1, undefined);
+      should.not.equal(nextGame.player2, undefined);
+
+      nextGame.player1.should.eql('23121931')
+      nextGame.player2.should.eql('23121932')
+
+      bot.game(msgFromAdmin);
+      bot.result(msgFromAdmin, correctMatch);
+
+      nextGame = tournament.root.findNextGame();
+
+      should.not.equal(nextGame, undefined);
+      should.not.equal(nextGame.player1, undefined);
+      should.not.equal(nextGame.player2, undefined);
+
+      nextGame.player1.should.eql('23121933')
+      nextGame.player2.should.eql('23121936')
+
+      bot.game(msgFromAdmin);
+      bot.result(msgFromAdmin, correctMatch);
+
+      nextGame = tournament.root.findNextGame();
+
+      should.not.equal(nextGame, undefined);
+      should.not.equal(nextGame.player1, undefined);
+      should.not.equal(nextGame.player2, undefined);
+
+      nextGame.player1.should.eql('23121932')
+      nextGame.player2.should.eql('23121936')
+
+      bot.game(msgFromAdmin);
+      bot.result(msgFromAdmin, correctMatch);
+
+      nextGame.winner.should.equal('23121936')
     });
   });
 
